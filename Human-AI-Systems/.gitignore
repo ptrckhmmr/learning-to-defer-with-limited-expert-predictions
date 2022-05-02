@@ -1,0 +1,11 @@
+artificial_expert_labels/
+plots/
+results/
+hemmer/experiments
+hemmer/data
+monzannar_sontag/experiments
+monzannar_sontag/data
+raghu/experiments
+raghu/data
+okati/experiments
+okati/data
