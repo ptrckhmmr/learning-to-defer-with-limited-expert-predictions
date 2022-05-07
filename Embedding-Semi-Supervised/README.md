@@ -1,27 +1,7 @@
 ## Embedding-Semi-supervised Learning Approaches for Generating Artificial Expert Labels
 This repository contains the implementations of the embedding semi-supervised learning baselines **Embedding-FixMatch** and **Embedding-CoMatch** for generating artificial expert labels. 
-These implementations use the code from the PyTorch implementations of the <a href="https://arxiv.org/abs/2011.11183">CoMatch paper</a> <a href="https://blog.einstein.ai/comatch-advancing-semi-supervised-learning-with-contrastive-graph-regularization/">[Blog]</a>:
-<pre>
-@inproceedings{CoMatch,
-	title={Semi-supervised Learning with Contrastive Graph Regularization},
-	author={Junnan Li and Caiming Xiong and Steven C.H. Hoi},
-	booktitle={ICCV},
-	year={2021}
-}</pre>
-and the <a href="https://arxiv.org/abs/2001.07685">FixMatch paper</a>:
-<pre>
-@inproceedings{FixMatch,
-	title = {FixMatch: Simplifying Semi-Supervised Learning with Consistency and Conﬁdence},
-	journal = {NeurIPS},
-	author = {Sohn, Kihyuk and Berthelot, David and Li, Chun-Liang and Zhang, Zizhao and Carlini, Nicholas and Cubuk, Ekin D and Kurakin, Alex and Zhang, Han and Raffel, Colin},
-	year = {2020}
-}</pre>
-
-### Requirements:
-* PyTorch ≥ 1.4
-* pip install tensorboard_logger
-* download and extract <a href="https://www.cs.toronto.edu/~kriz/cifar.html">CIFAR-100 dataset</a> into ./data/
-* download and extract <a href="https://cloud.google.com/healthcare-api/docs/resources/public-datasets/nih-chest">NIH dataset</a> and alter the path to the NIH images in datasets/nih.py
+These implementations use the code from the PyTorch implementations of <a href="https://arxiv.org/abs/2011.11183">CoMatch</a> 
+and the <a href="https://arxiv.org/abs/2001.07685">FixMatch</a> which can be found in this <a href="https://github.com/salesforce/CoMatch">repository</a>.
 
 ### Train Embedding Model
 To train the embedding model for the CIFAR-100 dataset run:
@@ -39,4 +19,5 @@ To train the expert model and generate artificial expert labels for the NIH data
 <pre>python Train_embedding_cm.py --n-labeled $labels --seed $seed --ex_strength $labeler_id --n-imgs-per-epoch 32768 --dataset NIH</pre> 
 <pre>python Train_embedding_fm.py --n-labeled $labels --seed $seed --ex_strength $labeler_id --n-imgs-per-epoch 32768 --dataset NIH</pre> 
 
-The generated artificial expert labels will be saved as json file into the *artificial_expert_labels* folder.
+The generated artificial expert labels can be found under `artificial_expert_labels/`. 
+For evaluating the artificial expert labels refer to `Human-AI-Systems/`.

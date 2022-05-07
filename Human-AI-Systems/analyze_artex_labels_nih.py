@@ -93,7 +93,6 @@ test_bacc = {a: {} for a in APPROACHES.keys()}
 mean_bacc = {a: {} for a in APPROACHES.keys()}
 std_bacc = {a: {} for a in APPROACHES.keys()}
 
-results_emb_svm = pd.read_csv('artificial_expert_labels/emb_svm_label_test_3_nih.csv')
 total_results = []
 for approach in APPROACHES.keys():
     for labels in LABELS:
@@ -105,28 +104,29 @@ for approach in APPROACHES.keys():
                 with open(predictions_file, 'r') as f:
                     predictions = json.load(f)
                 preds = [predictions[img_id] for img_id in true_expert['Image ID']]
+                bin_preds = 1*(true_expert['Airspace_Opacity_GT_Label']==preds)
                 true_preds = 1*(true_expert['Airspace_Opacity_GT_Label']==true_expert['Airspace_Opacity_Expert_Label'])
-                test_acc[approach][labels].append(accuracy_score(true_preds, preds))
-                test_bacc[approach][labels].append(fbeta_score(true_preds, preds, beta=0.5))
+                test_acc[approach][labels].append(fbeta_score(true_preds, preds, beta=0.5))
+                test_bacc[approach][labels].append(fbeta_score(true_preds, preds, beta=2))
             except FileNotFoundError:
                 print(f'{predictions_file} not found')
                 pass
-        mean_acc[approach][labels] = np.mean(test_acc[approach][labels])
-        std_acc[approach][labels] = np.std(test_acc[approach][labels], ddof=1)/np.sqrt(np.size(test_acc[approach][labels]))
+        mean_acc[approach][labels] = np.mean(test_bacc[approach][labels])
+        std_acc[approach][labels] = np.std(test_bacc[approach][labels])
         mean_bacc[approach][labels] = np.mean(test_bacc[approach][labels])
-        std_bacc[approach][labels] = np.std(test_bacc[approach][labels], ddof=1)/np.sqrt(np.size(test_bacc[approach][labels]))
+        std_bacc[approach][labels] = np.std(test_bacc[approach][labels])
     total_results.append([approach] + list(mean_bacc[approach].values()))
 
 plt.figure(figsize=(8, 4.5))
 plt.style.use('seaborn-colorblind')
 for approach in APPROACHES:
-    plt.plot(mean_bacc[approach].keys(), mean_bacc[approach].values(), label=APPROACHES[approach][0], color=APPROACHES[approach][1], marker='o')
-    fill_low = [mean_bacc[approach][l] - std_bacc[approach][l] for l in LABELS]
-    fill_up = [mean_bacc[approach][l] + std_bacc[approach][l] for l in LABELS]
+    plt.plot(mean_acc[approach].keys(), mean_acc[approach].values(), label=APPROACHES[approach][0], color=APPROACHES[approach][1], marker='o')
+    fill_low = [mean_acc[approach][l] - std_acc[approach][l] for l in LABELS]
+    fill_up = [mean_acc[approach][l] + std_acc[approach][l] for l in LABELS]
     plt.fill_between(std_bacc[approach].keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
 plt.xlabel('Number of Expert Labels', fontsize=14)
 plt.ylabel('F0.5-Score', fontsize=14)
-plt.ylim(0.5,0.95)
+plt.ylim(0.5, 0.95)
 #plt.title(f'Predicted Expert Performance (Strength {strength})', fontsize=14)
 plt.minorticks_on()
 plt.grid(visible=True, which='major', alpha=0.2, color='grey', linestyle='-')

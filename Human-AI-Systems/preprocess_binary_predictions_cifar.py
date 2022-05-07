@@ -2,8 +2,11 @@ import json
 import os
 import numpy as np
 import pickle
+from absl import flags
+from absl import app
 from sklearn.metrics._classification import accuracy_score
 
+FLAGS = flags.FLAGS
 
 def unpickle(file):
     """Function to open the files using pickle
@@ -57,9 +60,9 @@ def main():
 
     :return:
     """
-    EX_STRENGTH = 90
+    EX_STRENGTH = FLAGS.ex_strength
     NUM_CLASSES = 20
-    APPROACH = 'FixMatch'
+    APPROACH = FLAGS.approach
     labels = [40, 80, 120, 200, 400, 1000, 5000]
     seeds = [0, 1, 2, 3, 4]
     for s in seeds:
@@ -90,4 +93,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    flags.DEFINE_string('approach', 'EmbeddingCM_bin', 'Approach for predicting the expert labels')
+    flags.DEFINE_integer('ex_strength', 60, 'Expert Strength')
+    app.run(main)

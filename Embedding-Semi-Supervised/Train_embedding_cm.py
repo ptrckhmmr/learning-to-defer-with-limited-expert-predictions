@@ -564,11 +564,14 @@ def main():
         predictions = predict_cifar(model, ema_model, emb_model, dltrain_x, dltrain_u, dlval)
     elif 'nih' in args.dataset.lower():
         predictions = predict_nih(model, ema_model, emb_model, dltrain_x, dltrain_u , dlval)
+
     logger.info("***** Generate Predictions *****")
-    with open(f'predictions/{args.exp_dir}_{args.dataset.lower()}_expert{args.ex_strength}.{args.seed}@{args.n_labeled}_predictions.json', 'w') as f:
+    pred_file = f'{args.exp_dir}_{args.dataset.lower()}_expert{args.ex_strength}.{args.seed}@{args.n_labeled}_predictions.json'
+    with open(f'predictions/{pred_file}', 'w') as f:
+        json.dump(predictions, f)
+    with open(os.getcwd()[:-len('Embedding-Semi-Supervised')]+f'Human-AI-Systems/predictions/{pred_file}', 'w') as f:
         json.dump(predictions, f)
 
 
-        
 if __name__ == '__main__':
     main()
