@@ -2,7 +2,7 @@
 
 This repository contains the code to replicate the experiments conducted in our paper.
 
-<img src="framework.png" width="800" alt="Overview of the proposed framework"/>
+<img src="framework.jpg" width="800" alt="Overview of the proposed framework"/>
 
 ## Contents
 This repository is structured as follows:
@@ -34,5 +34,5 @@ Follow these steps to recreate our experiments:
 3. Generate the artificial expert labels
 4. Execute the training of one of the Human-Machine-Systems
 
-Detailed instructions can be found in the respective subfolders
+Detailed instructions can be found in the respective subfolders.
 
