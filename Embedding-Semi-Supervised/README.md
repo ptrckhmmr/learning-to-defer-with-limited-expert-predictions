@@ -1,5 +1,5 @@
-## Embedding-Semi-supervised Learning Approaches for Generating Artificial Expert Labels
-This repository contains the implementations of the embedding semi-supervised learning baselines **Embedding-FixMatch** and **Embedding-CoMatch** for generating artificial expert labels. 
+## Embedding Semi-Supervised Learning Approaches for Generating Artificial Expert Labels
+This repository contains the implementations of the embedding semi-supervised learning baselines *Embedding-FixMatch* and *Embedding-CoMatch* for generating artificial expert labels. 
 These implementations use the code from the PyTorch implementations of <a href="https://arxiv.org/abs/2011.11183">CoMatch</a> 
 and the <a href="https://arxiv.org/abs/2001.07685">FixMatch</a> which can be found in this <a href="https://github.com/salesforce/CoMatch">repository</a>.
 
@@ -20,4 +20,4 @@ To train the expert model and generate artificial expert labels for the NIH data
 <pre>python Train_embedding_fm.py --n-labeled $labels --seed $seed --ex_strength $labeler_id --n-imgs-per-epoch 32768 --dataset NIH</pre> 
 
 The generated artificial expert labels can be found under `artificial_expert_labels/`. 
-For evaluating the artificial expert labels refer to `Human-AI-Systems/`.
+For evaluating the artificial expert labels refer to `Human-AI-Systems/analyze_artex_labels_cifar.py` and  `Human-AI-Systems/analyze_artex_labels_nih.py`.
