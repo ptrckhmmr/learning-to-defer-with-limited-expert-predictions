@@ -1,5 +1,5 @@
-## Embedding-Supervised Learning Approaches for Generating Artificial Expert Labels
-This repository contains the implementations of the embedding-supervised learning baselines **Embedding-NN** and **Embedding-SVM** for generating artificial expert labels. 
+## Embedding Supervised Learning Approaches for Generating Artificial Expert Labels
+This repository contains the implementations of the embedding-supervised learning baselines *Embedding-NN* and *Embedding-SVM* for generating artificial expert labels. 
 
 ### Train Embedding Model
 To train the embedding model for the CIFAR-100 dataset run:
@@ -18,4 +18,4 @@ To train the expert model and generate artificial expert labels for the NIH data
 <pre>python train_SVM_ex_model.py --n-labeled $labels --seed $seed --ex_strength $strength --dataset nih --emb_model resnet18 --binary False</pre> 
 
 The generated artificial expert labels can be found under `artificial_expert_labels/`. 
-For evaluating the artificial expert labels refer to `Human-AI-Systems/`.
+For evaluating the artificial expert labels refer to `Human-AI-Systems/analyze_artex_labels_cifar.py` and `Human-AI-Systems/analyze_artex_labels_nih.py`.
