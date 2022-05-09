@@ -10,12 +10,12 @@ To train the embedding model for the NIH dataset run:
 
 ### Train Expert Model and Generate Artificial Expert Labels
 To train the expert model and generate artificial expert labels for the CIFAR-100 dataset run:
-<pre>python train_nn_ex_model.py --n-labeled $labels --seed $seed --ex_strength $strength --dataset cifar100 --emb_model efficientnetb1 --binary True</pre> 
-<pre>python train_svm_ex_model.py --n-labeled $labels --seed $seed --ex_strength $strength --dataset cifar100 --emb_model efficientnetb1 --binary True</pre> 
+<pre>python train_nn_ex_model.py --n-labeled 120 --ex_strength 60 --dataset cifar100 --emb_model efficientnetb1 --binary True</pre> 
+<pre>python train_svm_ex_model.py --n-labeled 120 --ex_strength 60 --dataset cifar100 --emb_model efficientnetb1 --binary True</pre> 
 
 To train the expert model and generate artificial expert labels for the NIH dataset run:
-<pre>python train_nn_ex_model.py --n-labeled $labels --seed $seed --ex_strength $strength --dataset nih --emb_model resnet18 --binary False</pre> 
-<pre>python train_SVM_ex_model.py --n-labeled $labels --seed $seed --ex_strength $strength --dataset nih --emb_model resnet18 --binary False</pre> 
+<pre>python train_nn_ex_model.py --n-labeled 12 --dataset nih --emb_model resnet18 --binary False</pre> 
+<pre>python train_SVM_ex_model.py --n-labeled 12 --dataset nih --emb_model resnet18 --binary False</pre> 
 
 The generated artificial expert labels can be found under `artificial_expert_labels/`. 
 For evaluating the artificial expert labels refer to `Human-AI-Systems/analyze_artex_labels_cifar.py` and `Human-AI-Systems/analyze_artex_labels_nih.py`.
