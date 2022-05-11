@@ -107,7 +107,6 @@ def load_data_train(L, expert):
     y_ex_data = np.array(data[target+'_Expert_Label'])
     y_gt_data = np.array(data[target + '_GT_Label'])
     y_data = y_ex_data
-
     # split train and test data
     train_index, _ = generate_patient_train_test_split(data, 1234)
     x_train_data = x_data[train_index]
@@ -130,7 +129,6 @@ def load_data_train(L, expert):
         label_x = y_train_data
         data_u = None
         label_u = None
-
     return data_x, label_x, data_u,  label_u
 
 

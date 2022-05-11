@@ -6,7 +6,7 @@ import seaborn as sns
 
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-import data_loading as prep
+import feature_extractor.data_loading as prep
 
 
 def accuracy(outputs, labels):

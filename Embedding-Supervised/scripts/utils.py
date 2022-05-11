@@ -33,7 +33,7 @@ def concat_args(args, mode):
     """
     args_string = mode + '@'
     for key in args:
-        if key != 'batch':
+        if key != 'batch' and not (mode == 'emb_net' and key == 'lr'):
             args_string += str(key) + '-' + str(args[key]) + '-'
     return args_string[:-1]
 

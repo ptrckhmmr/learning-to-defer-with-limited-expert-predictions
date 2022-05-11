@@ -293,7 +293,7 @@ def evaluate(model, ema_model, emb_model, dataloader):
 
 
 def predict_cifar(model, ema_model, emb_model, trainloader_x, trainloader_u, testloader):
-    """Generate predictions for the cifar dataset
+    """Generate artificial_expert_labels for the cifar dataset
 
     :param model: Model
     :param ema_model: EMA-Model
@@ -307,12 +307,12 @@ def predict_cifar(model, ema_model, emb_model, trainloader_x, trainloader_u, tes
 
     predictions = {'train': np.zeros(50000, dtype=int), 'test': np.zeros(10000, dtype=int)}
     with torch.no_grad():
-        # use expert labels as predictions for the labeled set
+        # use expert labels as artificial_expert_labels for the labeled set
         for ims, lbs, im_id in trainloader_x:
             for j in range(len(lbs)):
                 predictions['train'][im_id[j]] = lbs[j]
-        # generate predictions for the unlabeled set
-        for ims, lbs, im_id in trainloader_u:
+        # generate artificial_expert_labels for the unlabeled set
+        for (ims, _, _), lbs, im_id in trainloader_u:
             ims = ims.cuda()
             lbs = lbs.cuda()
             embedding = emb_model.get_embedding(batch=ims)
@@ -322,9 +322,10 @@ def predict_cifar(model, ema_model, emb_model, trainloader_x, trainloader_u, tes
                 logits, _ = model(embedding)
 
             output = torch.softmax(logits, dim=1)
+            predicted_class = torch.argmax(output, dim=1).cpu().numpy()
             for j in range(len(lbs)):
-                predictions['train'][im_id[j]] = int(output[j].cpu().tolist())
-        # generate predictions for the test set
+                predictions['train'][im_id[j]] = int(predicted_class[j])
+        # generate artificial_expert_labels for the test set
         for ims, lbs, im_id in testloader:
             ims = ims.cuda()
             lbs = lbs.cuda()
@@ -334,13 +335,14 @@ def predict_cifar(model, ema_model, emb_model, trainloader_x, trainloader_u, tes
             else:
                 logits, _ = model(embedding)
             output = torch.softmax(logits, dim=1)
+            predicted_class = torch.argmax(output, dim=1).cpu().numpy()
             for j in range(len(lbs)):
-                predictions['test'][im_id[j]] = int(output[j].cpu().tolist())
-    return predictions
+                predictions['test'][im_id[j]] = int(predicted_class[j])
+    return {'train':predictions['train'].tolist(), 'test':predictions['test'].tolist()}
 
 
 def predict_nih(model, ema_model, emb_model, trainloader_x, trainloader_u, testloader):
-    """Generate predictions for the nih dataset
+    """Generate artificial_expert_labels for the nih dataset
 
     :param model: Model
     :param ema_model: EMA-Model
@@ -354,12 +356,12 @@ def predict_nih(model, ema_model, emb_model, trainloader_x, trainloader_u, testl
 
     predictions = {}
     with torch.no_grad():
-        # use expert labels as predictions for the labeled set
+        # use expert labels as artificial_expert_labels for the labeled set
         for ims, lbs, im_id in trainloader_x:
             for j in range(len(lbs)):
                 predictions[im_id[j]] = int(lbs[j])
-        # generate predictions for the unlabeled set
-        for ims, lbs, im_id in trainloader_u:
+        # generate artificial_expert_labels for the unlabeled set
+        for (ims, _, _), lbs, im_id in trainloader_u:
             ims = ims.cuda()
             lbs = lbs.cuda()
             embedding = emb_model.get_embedding(batch=ims)
@@ -371,7 +373,7 @@ def predict_nih(model, ema_model, emb_model, trainloader_x, trainloader_u, testl
             predicted_class = torch.argmax(output, dim=1).cpu().numpy()
             for j in range(len(lbs)):
                 predictions[im_id[j]] = int(predicted_class[j])
-        # generate predictions for the test set
+        # generate artificial_expert_labels for the test set
         for ims, lbs, im_id in testloader:
             ims = ims.cuda()
             lbs = lbs.cuda()
@@ -403,7 +405,7 @@ def main():
                         help='number of labeled samples for training')
     parser.add_argument('--n-epoches', type=int, default=512,
                         help='number of training epoches')
-    parser.add_argument('--batchsize', type=int, default=64,
+    parser.add_argument('--batchsize', type=int, default=16,
                         help='train batch size of labeled samples')
     parser.add_argument('--mu', type=int, default=7,
                         help='factor of train batch size of unlabeled samples')
@@ -436,7 +438,6 @@ def main():
     parser.add_argument('--queue-batch', type=float, default=5, 
                         help='number of batches stored in memory bank')    
     parser.add_argument('--exp-dir', default='EmbeddingCM_bin', type=str, help='experiment id')
-    parser.add_argument('--checkpoint', default='', type=str, help='use pretrained model')
     parser.add_argument('--ex_strength', default=60, help='Strength of the expert')
     
     args = parser.parse_args()
@@ -471,8 +472,7 @@ def main():
     elif 'nih' in args.dataset.lower():
         expert = NIHExpert(int(args.ex_strength), 2)
         dltrain_x, dltrain_u = nih.get_train_loader(
-            expert, args.batchsize, args.mu, n_iters_per_epoch, L=args.n_labeled, root=args.root,
-            method='comatch')
+            expert, args.batchsize, args.mu, n_iters_per_epoch, L=args.n_labeled, method='comatch')
         dlval = nih.get_val_loader(expert, batch_size=64, num_workers=2)
 
     wd_params, non_wd_params = [], []
@@ -563,13 +563,13 @@ def main():
     if 'cifar' in args.dataset.lower():
         predictions = predict_cifar(model, ema_model, emb_model, dltrain_x, dltrain_u, dlval)
     elif 'nih' in args.dataset.lower():
-        predictions = predict_nih(model, ema_model, emb_model, dltrain_x, dltrain_u , dlval)
+        predictions = predict_nih(model, ema_model, emb_model, dltrain_x, dltrain_u, dlval)
 
     logger.info("***** Generate Predictions *****")
     pred_file = f'{args.exp_dir}_{args.dataset.lower()}_expert{args.ex_strength}.{args.seed}@{args.n_labeled}_predictions.json'
-    with open(f'predictions/{pred_file}', 'w') as f:
+    with open(f'artificial_expert_labels/{pred_file}', 'w') as f:
         json.dump(predictions, f)
-    with open(os.getcwd()[:-len('Embedding-Semi-Supervised')]+f'Human-AI-Systems/predictions/{pred_file}', 'w') as f:
+    with open(os.getcwd()[:-len('Embedding-Semi-Supervised')]+f'Human-AI-Systems/artificial_expert_labels/{pred_file}', 'w') as f:
         json.dump(predictions, f)
 
 

@@ -26,6 +26,7 @@ class SVMExpertModel(EmbeddingModel):
 
     :ivar global_step: Global step
     :ivar args: Training arguments
+    :ivar device: Active device
     :ivar emb_model: Embedding model
     :ivar svc: SVM model
     :ivar expert: Expert
@@ -39,11 +40,12 @@ class SVMExpertModel(EmbeddingModel):
     def __init__(self, args, wkdir):
         self.global_step = 0
         self.args = args
+        self.device = prep.get_device()
         self.emb_model = self.get_emb_model(wkdir)
         self.svc = None
         if self.args['n_strengths'] is not None or self.args['dataset'] == 'cifar10h':
             if self.args['dataset'] == 'nih':
-                self.expert = NIHExpert(id=args['n_strengths'], n_classes=args['num_classes'], target='Airspace_Opacity')
+                self.expert = NIHExpert(id=4295342357, n_classes=args['num_classes'], target='Airspace_Opacity')
             else:
                 self.expert = CIFAR100Expert(self.args['num_classes'], self.args['n_strengths'], 1, 0, seed=args['ex_seed'])
         else:
@@ -71,10 +73,10 @@ class SVMExpertModel(EmbeddingModel):
         # load model
         if self.args['dataset'] == 'nih':
             model = Resnet(num_classes=self.args['num_classes'])
-            model = self.load_base_net_from_checkpoint(model, wkdir, strict=False)
+            model = self.load_emb_net_from_checkpoint(model, wkdir, strict=False)
         else:
             model = timm.create_model(self.args['emb_model'], pretrained=True, num_classes=self.args['num_classes'])
-            model = self.load_base_net_from_checkpoint(model, wkdir)
+            model = self.load_emb_net_from_checkpoint(model, wkdir)
             model = torch.nn.Sequential(*list(model.children())[:-1])
         print('Loaded Model', self.args['emb_model'])
         model = prep.to_device(model, self.device)
@@ -167,20 +169,27 @@ class SVMExpertModel(EmbeddingModel):
         # predict eval data
         preds = self.svc.predict(eval_features)
         # calculate metrics
+        if mode == 'Test':
+            data = self.test_data
+            gt_data = self.test_gt_data
+        else:
+            data = self.val_data
+            gt_data = self.val_gt_data
         if self.args['binary']:
             # calculate accuracy, f1-score and auc-score for binary artificial expert annotations
-            acc = accuracy_score(self.val_data.targets, preds)
-            f1 = f1_score(self.val_data.targets, preds)
-            auc = roc_auc_score(self.val_data.targets, preds)
+            acc = accuracy_score(data.targets, preds)
+            f1 = f1_score(data.targets, preds)
+            auc = roc_auc_score(data.targets, preds)
             print(f'Accruacy: {acc}, F1 Score: {f1}, AUC: {auc}')
             return {'acc': acc, 'f1': f1, 'auc': auc}
         else:
             # calculate accuracy and accuracy by strength for multiclass artificial expert annotations
-            accuracies = expert_accuracy_score(self.val_gt_data, self.val_data.targets, preds)
+            accuracies = expert_accuracy_score(gt_data, data.targets, preds)
             print(f'Accuracy: {accuracies["Ex_Acc"]}')
             print(f'Strength Acc: {accuracies["Streng_Acc"]}')
             print(f'Weakness Acc: {accuracies["Weak_Acc"]}')
-            return {'acc': accuracies["Ex_Acc"], 'val_sacc': accuracies["Streng_Acc"], 'val_wacc': accuracies["Weak_Acc"]}
+            return {'acc': accuracies["Ex_Acc"], 'sacc': accuracies["Streng_Acc"],
+                    'wacc': accuracies["Weak_Acc"]}
 
     def get_gs_metrics(self, gs, preds):
         """Get metrics for gridsearch evaluation
@@ -221,7 +230,7 @@ class SVMExpertModel(EmbeddingModel):
         emb_cnn_dir = get_train_dir(wkdir, args_base, 'emb_net')
         return emb_cnn_dir
 
-    def load_base_net_from_checkpoint(self, emb_model, wkdir, mode='best', strict=True):
+    def load_emb_net_from_checkpoint(self, emb_model, wkdir, mode='best', strict=True):
         """Load base model weights from checkpoint
 
         :param emb_model: Initialized base model
@@ -231,7 +240,7 @@ class SVMExpertModel(EmbeddingModel):
         :return: base model
         """
         # get checkpoint
-        cp_dir = self.get_base_net_dir(wkdir) + 'checkpoints/checkpoint.' + mode
+        cp_dir = self.get_emb_net_dir(wkdir) + 'checkpoints/checkpoint.' + mode
         try:
             # load state dict from checkpoint
             checkpoint = torch.load(cp_dir)
@@ -281,7 +290,7 @@ class SVMExpertModel(EmbeddingModel):
             data_loader = DataLoader(self.train_data, self.args['batch'], num_workers=0, pin_memory=False)
             for ii, (data, target, index) in enumerate(data_loader):
                 for j in range(len(index)):
-                    predictions['train'][index[j]] = target[j]
+                    predictions['train'][index[j]] = int(target[j].cpu().numpy())
         elif self.args['dataset'] == 'nih':
             # generate artificial expert labels for the train and test set
             pred_train = self.svc.predict(train_features).tolist()
@@ -295,7 +304,7 @@ class SVMExpertModel(EmbeddingModel):
             data_loader = DataLoader(self.train_data, self.args['batch'], num_workers=0, pin_memory=False)
             for ii, (data, target, index) in enumerate(data_loader):
                 for j in range(len(index)):
-                    predictions[index[j]] = target[j]
+                    predictions[index[j]] = int(target[j].cpu().numpy())
             print('train check:', accuracy_score(train_data.targets, pred_train))
             print('test check:', accuracy_score(test_data.targets, pred_test))
         return predictions

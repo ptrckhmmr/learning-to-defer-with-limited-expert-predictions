@@ -302,7 +302,7 @@ def predict_cifar(model, ema_model, trainloader_x, trainloader_u, testloader):
             for j in range(len(lbs)):
                 predictions['train'][im_id[j]] = lbs[j]
         # generate artificial_expert_labels for the unlabeled set
-        for ims, lbs, im_id in trainloader_u:
+        for (ims, _, _), lbs, im_id in trainloader_u:
             ims = ims.cuda()
             lbs = lbs.cuda()
             if ema_model is not None:
@@ -325,7 +325,7 @@ def predict_cifar(model, ema_model, trainloader_x, trainloader_u, testloader):
             predicted_class = torch.argmax(output, dim=1).cpu().numpy()
             for j in range(len(lbs)):
                 predictions['test'][im_id[j]] = int(predicted_class[j])
-    return predictions
+    return {'train':predictions['train'].tolist(), 'test':predictions['test'].tolist()}
 
 
 def predict_nih(model, ema_model, trainloader_x, trainloader_u, testloader):
@@ -347,7 +347,7 @@ def predict_nih(model, ema_model, trainloader_x, trainloader_u, testloader):
             for j in range(len(lbs)):
                 predictions[im_id[j]] = int(lbs[j])
         # generate artificial_expert_labels for the unlabeled set
-        for ims, lbs, im_id in trainloader_u:
+        for (ims, _, _), lbs, im_id in trainloader_u:
             ims = ims.cuda()
             lbs = lbs.cuda()
             if ema_model is not None:
@@ -422,7 +422,6 @@ def main():
     parser.add_argument('--queue-batch', type=float, default=5, 
                         help='number of batches stored in memory bank')    
     parser.add_argument('--exp-dir', default='CoMatch', type=str, help='experiment id')
-    parser.add_argument('--checkpoint', default='', type=str, help='use pretrained model')
     parser.add_argument('--ex_strength', default=60, help='Strength of the expert')
     
     args = parser.parse_args()
@@ -456,8 +455,7 @@ def main():
     elif 'nih' in args.dataset.lower():
         expert = NIHExpert(int(args.ex_strength), 2)
         dltrain_x, dltrain_u = nih.get_train_loader(
-            expert, args.batchsize, args.mu, n_iters_per_epoch, L=args.n_labeled, root=args.root,
-            method='comatch')
+            expert, args.batchsize, args.mu, n_iters_per_epoch, L=args.n_labeled, method='comatch')
         dlval = nih.get_val_loader(expert, batch_size=64, num_workers=2)
 
     wd_params, non_wd_params = [], []

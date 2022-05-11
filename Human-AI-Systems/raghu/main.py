@@ -25,7 +25,7 @@ def main(argv):
     APPROACH = FLAGS.approach
     DATASET = FLAGS.dataset
     LABELS = [FLAGS.labels]
-    SEEDS = [4, 0, 1, 2, 3]
+    SEEDS = [0, 1, 2, 3, 4]
     #############################################
     if LABELS[0] is None:
         if DATASET == 'nih':
@@ -79,10 +79,7 @@ def main(argv):
             np.random.seed(seed)
             random.seed(seed)
             # get filenames for artificial_expert_labels
-            if seed == 123 or ('EmbeddingBMT' in APPROACH and seed == 4):
-                predictions = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}@{l}_predictions' for l in LABELS]
-            else:
-                predictions = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}.{seed}@{l}_predictions' for l in LABELS]
+            predictions = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}.{seed}@{l}_predictions' for l in LABELS]
             keys = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}@{l}' for l in LABELS]
 
             pred_expert = {}
@@ -91,7 +88,6 @@ def main(argv):
                 try:
                     if DATASET == 'cifar100':
                         pred_expert[p] = Cifar100Expert(pred_dir=WKDIR, pred=p, true_pred=true_ex_preds)
-
                     elif DATASET == 'nih':
                         pred_expert[p] = NihExpert(pred_dir=WKDIR, pred=p, true_pred=true_ex_preds)
                     pred_expert_fns[p] = pred_expert[p].predict

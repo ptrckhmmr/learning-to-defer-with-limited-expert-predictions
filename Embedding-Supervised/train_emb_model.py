@@ -22,7 +22,7 @@ def main(argv):
         'lr': FLAGS.lr,
     }
     # get training directory
-    train_dir = get_train_dir(wkdir, args, 'base_net')
+    train_dir = get_train_dir(wkdir, args, 'emb_net')
     # initialize summary writer for tensorboard
     writer = SummaryWriter(train_dir + 'logs/')
     # initialize base model

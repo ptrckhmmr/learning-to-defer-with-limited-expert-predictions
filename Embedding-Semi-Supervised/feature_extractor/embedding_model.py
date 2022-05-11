@@ -162,7 +162,7 @@ class Resnet(torch.nn.Module):
             print('load Resnet-18 checkpoint')
             print(self.load_my_state_dict(
                 torch.load(
-                    train_dir + "/NIH/base_net@dataset-nih-model-resnet18-num_classes-2/checkpoints/checkpoint.pretrain"),
+                    train_dir + "/NIH/emb_net@dataset-nih-model-resnet18-num_classes-2/checkpoints/checkpoint.pretrain"),
                 strict=False))
         except KeyError:
             print('load Resnet-18 pretrained on ImageNet')

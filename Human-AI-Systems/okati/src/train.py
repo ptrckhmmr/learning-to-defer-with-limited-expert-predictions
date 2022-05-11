@@ -88,7 +88,7 @@ def train_classifier(args, train_loader, model, optimizer, scheduler, epoch, exp
             human_scores_batch = E_batch
             human_loss_batch = loss_func(human_scores_batch, Y_batch)
 
-        machine_indices = find_machine_samples(machine_loss_batch, human_loss_batch, 1)
+        machine_indices = find_machine_samples(machine_loss_batch, human_loss_batch)
         human_indices = []
         for j in range(batch_size):
             if j not in machine_indices:
@@ -159,7 +159,7 @@ def validate_classifier(args, val_loader, model, expert_fn, n_classes, test=Fals
         human_scores += human_scores_batch.cpu().tolist()
         targets += Y_batch.cpu().tolist()
 
-    machine_indices = find_machine_samples(torch.tensor(machine_loss), torch.tensor(human_loss), 1)
+    machine_indices = find_machine_samples(torch.tensor(machine_loss), torch.tensor(human_loss))
     human_indices = []
     for j in range(len(targets)):
         if j not in machine_indices:
@@ -281,7 +281,7 @@ def train_expert(args, classifier_model, train_loader, model, optimizer, schedul
             human_scores_batch = E_batch
             human_loss_batch = loss_func(human_scores_batch, Y_batch)
 
-        machine_indices = find_machine_samples(machine_loss_batch, human_loss_batch, 1)
+        machine_indices = find_machine_samples(machine_loss_batch, human_loss_batch)
         g_labels_batch = torch.tensor([0 if j in machine_indices else 1 for j in range(batch_size)]).to(device)
 
         optimizer.zero_grad()
@@ -350,7 +350,7 @@ def validate_expert(args, classifier_model, val_loader, model, expert_fn, n_clas
             human_loss_batch = loss_func(human_scores_batch, Y_batch)
 
         train_dir = get_train_dir(os.getcwd(), args, 'triage-classifier')
-        machine_indices = find_machine_samples(machine_loss_batch, human_loss_batch, 1)
+        machine_indices = find_machine_samples(machine_loss_batch, human_loss_batch)
         g_labels_batch = torch.tensor([0 if j in machine_indices else 1 for j in range(batch_size)]).to(device)
 
         gpred = model(X_batch)

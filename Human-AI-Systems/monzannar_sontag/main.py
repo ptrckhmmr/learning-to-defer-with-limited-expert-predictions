@@ -79,10 +79,7 @@ def main(argv):
             np.random.seed(seed)
             random.seed(seed)
             # get filenames for artificial_expert_labels
-            if seed == 123:
-                predictions = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}@{l}_predictions' for l in LABELS]
-            else:
-                predictions = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}.{seed}@{l}_predictions' for l in LABELS]
+            predictions = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}.{seed}@{l}_predictions' for l in LABELS]
             keys = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}@{l}' for l in LABELS]
             pred_expert = {}
             pred_expert_fns = {}

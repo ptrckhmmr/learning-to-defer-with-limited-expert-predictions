@@ -249,10 +249,10 @@ class Resnet(torch.nn.Module):
 
         try:
             print('load Resnet-18 checkpoint')
-            print(self.load_my_state_dict(
+            self.load_my_state_dict(
                 torch.load(
-                    os.getcwd() + "/experiments/base_net@dataset-nih-model-resnet18-num_classes-2/checkpoints/checkpoint.pretrain"),
-                strict=False))
+                    os.getcwd()[:-len('Embedding-Supervised')] + "/nih_images/checkpoint.pretrain"),
+                strict=False)
         except FileNotFoundError:
             print('load Resnet-18 pretrained on ImageNet')
 

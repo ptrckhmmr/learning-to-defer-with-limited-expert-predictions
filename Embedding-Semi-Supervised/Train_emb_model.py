@@ -22,14 +22,13 @@ def main(argv):
         'lr': FLAGS.lr,
     }
     # get training directory
-    train_dir = get_train_dir(wkdir, args, 'base_net')
+    train_dir = get_train_dir(wkdir, args, 'emb_net')
     # initialize summary writer for tensorboard
     writer = SummaryWriter(train_dir + 'logs/')
     # initialize base model
     emb_model = EmbeddingModel(args, wkdir, writer)
     # try to load previous training runs
     start_epoch = emb_model.load_from_checkpoint(mode='latest')
-    valid_acc = emb_model.get_test_accuracy(return_acc=True)
     # train model
     for epoch in range(start_epoch, 200):
         # train one epoch

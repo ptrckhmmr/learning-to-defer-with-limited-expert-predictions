@@ -13,7 +13,7 @@ from torch.utils.tensorboard.writer import SummaryWriter
 from src.data_loading import CIFAR100_Dataloader, NIH_Dataloader
 from src.utils import load_from_checkpoint, save_to_checkpoint, log_test_metrics, get_train_dir
 from src.metrics import accuracy, AverageMeter, metrics_print
-from src.models import WideResNet, DenseNet121_defer, Resnet, NIH_Network
+from src.models import WideResNet, Resnet, NIH_Network
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

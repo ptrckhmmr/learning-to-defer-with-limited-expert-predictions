@@ -21,7 +21,7 @@ class Cifar100Expert:
     def __init__(self, pred_dir, pred: str = None, true_pred: str = None):
         self.pred_dir = pred_dir[:-len('raghu')]
         if pred is not None:
-            with open(self.pred_dir+'/artificial_expert_labels/'+pred+'.json') as json_file:
+            with open(self.pred_dir+'artificial_expert_labels/'+pred+'.json') as json_file:
               self.artificial_expert_labels = json.load(json_file)
         if true_pred is not None:
             with open(self.pred_dir + '/artificial_expert_labels/' + true_pred + '.json') as json_file:

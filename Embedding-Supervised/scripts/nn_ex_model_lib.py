@@ -8,9 +8,10 @@ import warnings
 
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, roc_auc_score
 
-import scripts.dataloading as prep
+import scripts.data_loading as prep
 
-from scripts.utils import printProgressBar, get_train_dir, expert_accuracy_score, get_accuracy_by_cat
+from scripts.metrics import expert_accuracy_score, get_accuracy_by_cat
+from scripts.utils import printProgressBar, get_train_dir
 from scripts.emb_model_lib import EmbeddingModel, Resnet
 from scripts.Expert import CIFAR100Expert, NIHExpert
 
@@ -66,7 +67,7 @@ class NNExpertModel(EmbeddingModel):
 
         if self.args['n_strengths'] is not None:
             if self.args['dataset'] == 'nih':
-                self.expert = NIHExpert(id=args['n_strengths'], n_classes=args['num_classes'],
+                self.expert = NIHExpert(id=4295342357, n_classes=args['num_classes'],
                                         target='Airspace_Opacity')
             else:
                 self.expert = CIFAR100Expert(self.args['num_classes'], self.args['n_strengths'], 1, 0,
@@ -77,7 +78,7 @@ class NNExpertModel(EmbeddingModel):
             self.train_data, self.test_data, self.val_data, self.train_gt_data, self.test_gt_data, self.val_gt_data = \
                 prep.get_train_val_test_data(dataset=args['dataset'], expert=self.expert, binary=args['binary'],
                                              gt_targets=True,
-                                             model=args['emb_model'], subset=args['labels'], seed=args['seed'])
+                                             model=args['emb_model'], L=args['labels'], seed=args['seed'])
             self.train_loader, self.test_loader, self.val_loader, device = prep.get_data_loader(self.train_data,
                                                                                                 self.test_data,
                                                                                                 self.val_data,
@@ -86,8 +87,7 @@ class NNExpertModel(EmbeddingModel):
             self.train_data, self.test_data, self.train_gt_data, self.test_gt_data = \
                 prep.get_train_val_test_data(dataset=args['dataset'], expert=self.expert, binary=args['binary'],
                                              gt_targets=True,
-                                             model=args['emb_model'], subset=args['labels'], seed=args[''
-                                                                                                   'eed'],
+                                             model=args['emb_model'], L=args['labels'], seed=args['seed'],
                                              valid=False)
             self.train_loader, self.test_loader, device = prep.get_data_loader(self.train_data,
                                                                                self.test_data,
@@ -155,7 +155,10 @@ class NNExpertModel(EmbeddingModel):
                 target = target.long().to(self.device)
             self.optimizer.zero_grad()
 
-            features = self.emb_model(data)
+            if self.args['dataset'] == 'nih':
+                features = self.emb_model(data, return_features=True)
+            else:
+                features = self.emb_model(data)
             pred = self.model(features)
 
             if self.args['binary']:
@@ -192,9 +195,12 @@ class NNExpertModel(EmbeddingModel):
         for i, (data, target, indices) in enumerate(data_loader):
             data = data.to(self.device)
             target = target.to(self.device)
-            # get model predictions
+            # get model artificial_expert_labels
             with torch.no_grad():
-                emb = self.emb_model(data)
+                if self.args['dataset'] == 'nih':
+                    emb = self.emb_model(data, return_features=True)
+                else:
+                    emb = self.emb_model(data)
                 output = self.model(emb)
 
             # get predicted classes from model output
@@ -209,21 +215,27 @@ class NNExpertModel(EmbeddingModel):
                 preds.append(predicted_class[j])
 
         # calculate metrics
+        if mode == 'Test':
+            data = self.test_data
+            gt_data = self.test_gt_data
+        else:
+            data = self.val_data
+            gt_data = self.val_gt_data
         if self.args['binary']:
             # calculate accuracy, f1-score and auc-score for binary artificial expert annotations
-            acc = accuracy_score(self.val_data.targets, preds)
-            f1 = f1_score(self.val_data.targets, preds)
-            auc = roc_auc_score(self.val_data.targets, preds)
+            acc = accuracy_score(data.targets, preds)
+            f1 = f1_score(data.targets, preds)
+            auc = roc_auc_score(data.targets, preds)
             print(f'Accruacy: {acc}, F1 Score: {f1}, AUC: {auc}')
             return {'acc': acc, 'f1': f1, 'auc': auc}
         else:
             # calculate accuracy and accuracy by strength for multiclass artificial expert annotations
-            accuracies = expert_accuracy_score(self.val_gt_data, self.val_data.targets, preds)
+            accuracies = expert_accuracy_score(gt_data, data.targets, preds)
             print(f'Accuracy: {accuracies["Ex_Acc"]}')
             print(f'Strength Acc: {accuracies["Streng_Acc"]}')
             print(f'Weakness Acc: {accuracies["Weak_Acc"]}')
-            return {'acc': accuracies["Ex_Acc"], 'val_sacc': accuracies["Streng_Acc"],
-                    'val_wacc': accuracies["Weak_Acc"]}
+            return {'acc': accuracies["Ex_Acc"], 'sacc': accuracies["Streng_Acc"],
+                    'wacc': accuracies["Weak_Acc"]}
 
     def get_emb_net_dir(self, wkdir):
         """Get training directory of the embedding net
@@ -231,15 +243,12 @@ class NNExpertModel(EmbeddingModel):
         :param wkdir: Working directory
         :return: Training directory of the embedding net
         """
-        if self.args['dataset'] == 'nih':
-            args_base = {'dataset': self.args['dataset'],
-                         'model': self.args['emb_model'],
-                         'num_classes': self.args['num_classes']}
-        else:
-            args_base = {'model': self.args['emb_model'],
-                         'num_classes': self.args['num_classes']}
+        args_base = {'dataset': self.args['dataset'],
+                     'model': self.args['emb_model'],
+                     'num_classes': self.args['num_classes']}
 
-        base_cnn_dir = get_train_dir(wkdir, args_base, 'base_net')
+
+        base_cnn_dir = get_train_dir(wkdir, args_base, 'emb_net')
         return base_cnn_dir
 
     def load_emb_net_from_checkpoint(self, emb_model, wkdir, mode='best', strict=True):
@@ -283,7 +292,7 @@ class NNExpertModel(EmbeddingModel):
                                          valid=False, gt_targets=True, binary=self.args['binary'])
         train_loader, test_loader, _ = prep.get_data_loader(train_data, test_data,
                                                             batch_size=self.args['batch'], shuffle_train=False)
-        # generate predictions
+        # generate artificial_expert_labels
         self.model.eval()
         loader = {'train': train_loader, 'test': test_loader}
         for mode in ['train', 'test']:
@@ -291,7 +300,7 @@ class NNExpertModel(EmbeddingModel):
             for i, (data, target, batch_indices) in enumerate(loader[mode]):
                 data = data.to(self.device)
                 target = target.to(self.device)
-                # get model predictions
+                # get model artificial_expert_labels
                 with torch.no_grad():
                     emb = self.emb_model(data)
                     output = self.model(emb)
@@ -308,7 +317,7 @@ class NNExpertModel(EmbeddingModel):
             # replace artificial expert labels with true expert labels for the labeled dataset
             for ii, (data, target, index) in enumerate(self.train_loader):
                 for j in range(len(index)):
-                    predictions['train'][index[j]] = target[j]
+                    predictions['train'][index[j]] = int(target[j].cpu().numpy())
             # print accuracy check
             print('train check:', accuracy_score(train_data.targets, predictions['train']))
             print('test check:', accuracy_score(test_data.targets, predictions['test']))
@@ -323,7 +332,7 @@ class NNExpertModel(EmbeddingModel):
             # replace artificial expert labels with true expert labels for the labeled dataset
             for ii, (data, target, index) in enumerate(self.train_loader):
                 for j in range(len(index)):
-                    predictions[index[j]] = target[j]
+                    predictions[index[j]] = int(target[j].cpu().numpy())
             # print accuracy check
             print('train check:', accuracy_score(train_data.targets, pred_train))
             print('test check:', accuracy_score(test_data.targets, pred_test))

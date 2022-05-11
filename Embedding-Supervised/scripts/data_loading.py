@@ -264,6 +264,8 @@ def get_nih_data(expert, seed=123, valid=True, L=None, gt_targets=True, binary=T
     """
     if expert is not None:
         target = expert.target
+    else:
+        target = 'Airspace_Opacity'
 
     individual_labels = pd.read_csv("data/nih_labels.csv")
     img_dir = os.getcwd()[:-len('Embedding-Supervised')]+'nih_images/images_indlabels/'
@@ -419,6 +421,7 @@ class NIH_Dataset(Dataset):
             img = Image.open(img_dir + filename)
             img = img.convert("RGB")
             img = img.resize((224, 224))
+            img = self.tfms(img)
             self.images.append(img)
 
     def __getitem__(self, index: int):

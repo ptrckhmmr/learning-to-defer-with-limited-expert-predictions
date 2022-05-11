@@ -26,12 +26,14 @@ def main(argv):
         'lr': FLAGS.lr,
         'sched': FLAGS.sched,
         'opt': FLAGS.opt,
-        'n_strengths': FLAGS.n_strengths,
+        'n_strengths': FLAGS.ex_strength,
         'binary': FLAGS.binary,
-        'labels': FLAGS.labels,
+        'labels': FLAGS.n_labeled,
     }
     if args['dataset'] == 'nih':
         args['num_classes'] = 2
+    else:
+        args['num_classes'] = 20
     # get the training directory
     train_dir = get_train_dir(wkdir, args, 'expert_net')
     # initialize the summary writer for tensorboard
@@ -53,15 +55,19 @@ def main(argv):
         # write data to tensorboard
         ex_model.writer.flush()
         # save logs to json
-        save_to_logs(train_dir, test_acc, loss)
+        save_to_logs(train_dir, test_acc['acc'], loss)
         # save model to checkpoint
-        ex_model.save_to_checkpoint(epoch, loss, test_acc)
+        ex_model.save_to_checkpoint(epoch, loss, test_acc['acc'])
 
     preds = ex_model.predict()
     mode = 'binary' if args['binary'] else 'expert'
-    filename = f'predictions/EmbeddingNN_bin_{args["dataset"]}_{mode}{args["n_strengths"]}.' \
+    mode2 = 'bin' if args['binary'] else 'mult'
+    filename = f'EmbeddingNN_{mode2}_{args["dataset"]}_{mode}{args["n_strengths"]}.' \
                f'{args["split_seed"]}@{args["labels"]}_predictions.json'
-    with open(filename, 'w') as f:
+    with open(f'artificial_expert_labels/{filename}', 'w') as f:
+        json.dump(preds, f)
+    with open(os.getcwd()[
+              :-len('Embedding-Supervised')] + f'Human-AI-Systems/artificial_expert_labels/{filename}','w') as f:
         json.dump(preds, f)
 
 
@@ -76,8 +82,8 @@ if __name__ == '__main__':
     flags.DEFINE_float('lr', 4e-3, 'Learning-rate')
     flags.DEFINE_string('sched', 'step', 'Learningrate scheduling')
     flags.DEFINE_string('opt', 'sgd', 'Optimization algorithm')
-    flags.DEFINE_integer('n_strengths', 60, 'Number of expert strengths')
+    flags.DEFINE_integer('ex_strength', 60, 'Number of expert strengths')
     flags.DEFINE_boolean('binary', True, 'Flag for binary expert labels')
-    flags.DEFINE_integer('labels', 1000, 'Number of labeled images')
+    flags.DEFINE_integer('n_labeled', 1000, 'Number of labeled images')
 
     app.run(main)

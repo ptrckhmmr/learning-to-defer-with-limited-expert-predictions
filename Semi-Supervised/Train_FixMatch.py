@@ -9,7 +9,6 @@ import torch
 import torch.nn as nn
 from torch.utils.tensorboard.writer import SummaryWriter
 
-from resnet import resnet18
 from WideResNet import WideResnet
 import datasets.cifar as cifar
 import datasets.nih as nih
@@ -27,29 +26,15 @@ def set_model(args):
         - criteria_x: Supervised loss function
         - ema_model: Initialized ema model
     """
-    if args.dataset == 'nih':
-        model = resnet18(n_classes=args.n_classes, proj=False)
-    else:
-        model = WideResnet(n_classes=args.n_classes, k=args.wresnet_k, n=args.wresnet_n, proj=False)
+    model = WideResnet(n_classes=args.n_classes, k=args.wresnet_k, n=args.wresnet_n, proj=False)
 
-    if args.checkpoint:
-        checkpoint = torch.load(args.checkpoint)
-
-        msg = model.load_state_dict(checkpoint, strict=False)
-        assert set(msg.missing_keys) == {"classifier.weight", "classifier.bias"}
-        assert set(msg.unexpected_keys) == {'fc1.weight', 'fc1.bias', 'fc2.weight', 'fc2.bias'}
-        print('loaded from checkpoint: %s'%args.checkpoint)
-            
     model.train()
     model.cuda()
     criteria_x = nn.CrossEntropyLoss().cuda()
     criteria_u = nn.CrossEntropyLoss(reduction='none').cuda()
     
     if args.eval_ema:
-        if args.dataset == 'nih':
-            model = resnet18(n_classes=args.n_classes, proj=False)
-        else:
-            ema_model = WideResnet(n_classes=args.n_classes, k=args.wresnet_k, n=args.wresnet_n, proj=False)
+        ema_model = WideResnet(n_classes=args.n_classes, k=args.wresnet_k, n=args.wresnet_n, proj=False)
         for param_q, param_k in zip(model.parameters(), ema_model.parameters()):
             param_k.data.copy_(param_q.detach().data)  # initialize
             param_k.requires_grad = False  # not update by gradient for eval_net
@@ -255,7 +240,7 @@ def predict_cifar(model, ema_model, trainloader_x, trainloader_u, testloader):
             for j in range(len(lbs)):
                 predictions['train'][im_id[j]] = lbs[j]
         # generate artificial_expert_labels for the unlabeled set
-        for ims, lbs, im_id in trainloader_u:
+        for (ims, _), lbs, im_id in trainloader_u:
             ims = ims.cuda()
             lbs = lbs.cuda()
             if ema_model is not None:
@@ -278,7 +263,7 @@ def predict_cifar(model, ema_model, trainloader_x, trainloader_u, testloader):
             predicted_class = torch.argmax(output, dim=1).cpu().numpy()
             for j in range(len(lbs)):
                 predictions['test'][im_id[j]] = int(predicted_class[j])
-    return predictions
+    return {'train': predictions['train'].tolist(), 'test': predictions['test'].tolist()}
 
 
 def predict_nih(model, ema_model, trainloader_x, trainloader_u, testloader):
@@ -300,7 +285,7 @@ def predict_nih(model, ema_model, trainloader_x, trainloader_u, testloader):
             for j in range(len(lbs)):
                 predictions[im_id[j]] = int(lbs[j])
         # generate artificial_expert_labels for the unlabeled set
-        for ims, lbs, im_id in trainloader_u:
+        for (ims, _), lbs, im_id in trainloader_u:
             ims = ims.cuda()
             lbs = lbs.cuda()
             if ema_model is not None:
@@ -366,7 +351,6 @@ def main():
                         help='pseudo label threshold')   
     
     parser.add_argument('--exp-dir', default='FixMatch', type=str, help='experiment directory')
-    parser.add_argument('--checkpoint', default='', type=str, help='use pretrained model')
     parser.add_argument('--ex_strength', default=60, help='Strength of the expert')
     
     args = parser.parse_args()
@@ -400,8 +384,7 @@ def main():
     elif 'nih' in args.dataset.lower():
         expert = NIHExpert(int(args.ex_strength), 2)
         dltrain_x, dltrain_u = nih.get_train_loader(
-            expert, args.batchsize, args.mu, n_iters_per_epoch, L=args.n_labeled, root=args.root,
-            method='fixmatch')
+            expert, args.batchsize, args.mu, n_iters_per_epoch, L=args.n_labeled, method='fixmatch')
         dlval = nih.get_val_loader(expert, batch_size=64, num_workers=2)
 
     wd_params, non_wd_params = [], []

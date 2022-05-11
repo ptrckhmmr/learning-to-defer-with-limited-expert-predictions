@@ -23,6 +23,7 @@ torchvision
 torchtext
 timm
 scipy
+seaborn
 numpy
 matplotlib
 scikit-learn

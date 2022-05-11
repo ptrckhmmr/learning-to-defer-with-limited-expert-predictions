@@ -9,7 +9,7 @@ import torch.nn as nn
 from sklearn.metrics import confusion_matrix, accuracy_score
 from torchvision.models.resnet import resnet50, resnet18
 
-import scripts.data_loading as prep
+import feature_extractor.data_loading as prep
 
 from feature_extractor.wideresnet import WideResNet
 from feature_extractor.utils import get_train_dir, printProgressBar
@@ -57,6 +57,7 @@ class EmbeddingModel:
                                                                                             self.test_data,
                                                                                             self.val_data,
                                                                                             batch_size=args['batch'])
+        print(f'check: {self.train_data.images[10]}')
         self.save_model_args()
 
     def get_model(self):
@@ -249,10 +250,10 @@ class Resnet(torch.nn.Module):
 
         try:
             print('load Resnet-18 checkpoint')
-            print(self.load_my_state_dict(
+            self.load_my_state_dict(
                 torch.load(
-                    os.getcwd() + "/experiments/base_net@dataset-nih-model-resnet18-num_classes-2/checkpoints/checkpoint.pretrain"),
-                strict=False))
+                    os.getcwd()[:-len('Embedding-Semi-Supervised')] + "/nih_images/checkpoint.pretrain"),
+                strict=False)
         except FileNotFoundError:
             print('load Resnet-18 pretrained on ImageNet')
 
