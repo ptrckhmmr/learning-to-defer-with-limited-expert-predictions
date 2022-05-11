@@ -100,14 +100,14 @@ for approach in APPROACHES.keys():
         test_bacc[approach][labels] = []
         for seed in SEEDS:
             try:
-                predictions_file = f'artificial_expert_labels/{approach}_nih_binary{strength}.{seed}@{labels}_predictions.json'
+                predictions_file = f'artificial_expert_labels/{approach}_nih_expert{strength}.{seed}@{labels}_predictions.json'
                 with open(predictions_file, 'r') as f:
                     predictions = json.load(f)
                 preds = [predictions[img_id] for img_id in true_expert['Image ID']]
                 bin_preds = 1*(true_expert['Airspace_Opacity_GT_Label']==preds)
                 true_preds = 1*(true_expert['Airspace_Opacity_GT_Label']==true_expert['Airspace_Opacity_Expert_Label'])
-                test_acc[approach][labels].append(fbeta_score(true_preds, preds, beta=0.5))
-                test_bacc[approach][labels].append(fbeta_score(true_preds, preds, beta=2))
+                test_acc[approach][labels].append(fbeta_score(true_preds, bin_preds, beta=0.5))
+                test_bacc[approach][labels].append(fbeta_score(true_preds, bin_preds, beta=2))
             except FileNotFoundError:
                 print(f'{predictions_file} not found')
                 pass

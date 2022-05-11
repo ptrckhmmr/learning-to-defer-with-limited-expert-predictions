@@ -13,8 +13,8 @@ APPROACHES = {'FixMatch': ['FixMatch', 'lightgreen'],
               'CoMatch': ['CoMatch', 'green'],
               'EmbeddingNN_mult': ['Embedding-NN', 'blue'],
               'EmbeddingSVM_mult': ['Embedding-SVM', 'darkblue'],
-              'EmbeddingFM_mult': ['Embedding-FixMatch', 'yellow'],
-              'EmbeddingCM_mult': ['Embedding-CoMatch', 'orange']}
+              'EmbeddingFM_mult': ['Embedding-FixMatch (ours)', 'yellow'],
+              'EmbeddingCM_mult': ['Embedding-CoMatch (ours)', 'orange']}
 LABELS = ['4', '8', '12', '20', '40', '100', '500']
 SEEDS = [0, 1, 2, 3, 123]
 best_ex_performance = {60: 0.6792, 90: 0.9262, 95: 0.9613, 4295342357: 0.8389}
@@ -68,7 +68,7 @@ for f, framework in enumerate(FRAMEWORKS.keys()):
 
         plt.fill_between(acc.keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
     if framework == 'monzannar_sontag':
-        plt.ylabel(f'NIH Expert {EX_STRENGTH}\n System Test Accuracy\n', fontsize=12)
+        plt.ylabel(f'NIH Expert {EX_STRENGTH}\n % of System Test Accuracy\n with Complete Expert Labels\n', fontsize=12)
     plt.xlabel('\nNumber of Expert Labels $\mathit{l}$', fontsize=12)
     plt.title(f'{FRAMEWORKS[framework][0]}', fontsize=15)
     plt.minorticks_on()

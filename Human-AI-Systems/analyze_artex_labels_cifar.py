@@ -67,14 +67,12 @@ test_bacc = {a: {} for a in APPROACHES}
 mean_bacc = {a: {} for a in APPROACHES}
 std_bacc = {a: {} for a in APPROACHES}
 
-results_emb_svm = pd.read_csv(f'artificial_expert_labels/emb_svm_label_test_large.csv')
 total_results = []
 for approach in APPROACHES.keys():
     for labels in LABELS:
         test_acc[approach][labels] = []
         test_bacc[approach][labels] = []
         for seed in SEEDS:
-            if approach in ['EmbeddingNN_bin'] and seed == 4: seed = 123
             try:
                 predictions_file = f'artificial_expert_labels/{approach}_cifar100_binary{strength}.{seed}@{labels}_predictions.json'
                 if approach == 'BinaryMeanTeacher':
