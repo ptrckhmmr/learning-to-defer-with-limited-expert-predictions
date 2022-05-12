@@ -1,5 +1,5 @@
 ## Embedding Semi-Supervised Learning Approaches for Generating Artificial Expert Labels
-This repository contains the implementations of the embedding semi-supervised learning baselines *Embedding-FixMatch* and *Embedding-CoMatch* for generating artificial expert labels. 
+This repository contains the implementations of our proposed embedding semi-supervised learning approaches *Embedding-FixMatch* and *Embedding-CoMatch* for generating artificial expert labels.
 These implementations use the code from the PyTorch implementations of <a href="https://arxiv.org/abs/2011.11183">CoMatch</a> 
 and the <a href="https://arxiv.org/abs/2001.07685">FixMatch</a> which can be found in this <a href="https://github.com/salesforce/CoMatch">repository</a>.
 
