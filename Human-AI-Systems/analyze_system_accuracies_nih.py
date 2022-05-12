@@ -1,7 +1,6 @@
 import json
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from brokenaxes import brokenaxes
 import pandas as pd
 
 DATASET = 'nih'
@@ -28,7 +27,7 @@ g = 0
 total_results = []
 for f, framework in enumerate(FRAMEWORKS.keys()):
     legend = [None]*9
-    with open(f'{framework}/results/data/TrueExpert_{EX_STRENGTH}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
+    with open(f'{framework}/results/TrueExpert_{EX_STRENGTH}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
         true_ex_results = json.load(file)
 
     baxes = plt.subplot(grid[g])
@@ -44,10 +43,10 @@ for f, framework in enumerate(FRAMEWORKS.keys()):
     total_results.append([framework, EX_STRENGTH, 'True Expert'] + [true_ex_results['accuracy'][0] / 100] * len(LABELS))
     for a, approach in enumerate(APPROACHES.keys()):
         try:
-            with open(f'{framework}/results/data/{approach}_{EX_STRENGTH}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
+            with open(f'{framework}/results/{approach}_{EX_STRENGTH}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
                 results = json.load(file)
         except FileNotFoundError:
-            print(f'result file {framework}/results/data/{approach}_{EX_STRENGTH}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json not found')
+            print(f'result file {framework}/results/{approach}_{EX_STRENGTH}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json not found')
             continue
         acc = {}
         std = {}

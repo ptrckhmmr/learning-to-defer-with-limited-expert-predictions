@@ -26,7 +26,7 @@ legend = [None] * 9
 for s, strength in enumerate(EX_STRENGTH):
     for f, framework in enumerate(FRAMEWORKS.keys()):
 
-        with open(f'{framework}/results/data/TrueExpert_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
+        with open(f'{framework}/results/TrueExpert_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
             true_ex_results = json.load(file)
 
         baxes = plt.subplot(grid[g])
@@ -38,10 +38,10 @@ for s, strength in enumerate(EX_STRENGTH):
         total_results.append([framework, strength, 'True Expert'] + [true_ex_results['accuracy'][0]/100]*len(LABELS))
         for a, approach in enumerate(APPROACHES.keys()):
             try:
-                with open(f'{framework}/results/data/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
+                with open(f'{framework}/results/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
                     results = json.load(file)
             except FileNotFoundError:
-                print(f'result file {framework}/results/data/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json not found')
+                print(f'result file {framework}/results/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json not found')
                 continue
             acc = {}
             std = {}

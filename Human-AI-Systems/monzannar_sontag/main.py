@@ -122,7 +122,9 @@ def main(argv):
                                                    np.std(coverages[p]['cov_by_class'], axis=0).tolist()]]
             except KeyError:
                 pass
-    with open(f'{WKDIR}/results/data/{APPROACH}_{EX_STRENGTH}ex_{EPOCHS}epochs_experiment_{DATASET}_results.json', 'w') as fp:
+    if not os.path.exists(WKDIR + '/results'):
+        os.makedirs(WKDIR + '/results')
+    with open(f'{WKDIR}/results/{APPROACH}_{EX_STRENGTH}ex_{EPOCHS}epochs_experiment_{DATASET}_results.json', 'w') as fp:
         json.dump(experiment_data, fp)
 
 

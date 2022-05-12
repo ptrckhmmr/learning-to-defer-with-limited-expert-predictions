@@ -37,10 +37,10 @@ def get_train_dir(wkdir, args, mode):
     :return: Training directory
     """
     path = wkdir + '/experiments/' + concat_args(args, mode) + '/'
-    try:
-        os.mkdir(path)
-    except:
-        pass
+    if not os.path.exists(wkdir + '/experiments'):
+        os.makedirs(wkdir + '/experiments')
+    if not os.path.exists(path):
+        os.makedirs(path)
     try:
         os.mkdir(path + 'logs/')
         os.mkdir(path + 'args/')
