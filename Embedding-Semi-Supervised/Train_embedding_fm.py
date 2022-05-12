@@ -488,6 +488,8 @@ def main():
         predictions = predict_nih(model, ema_model, emb_model, dltrain_x, dltrain_u, dlval)
 
     logger.info("***** Generate Predictions *****")
+    if not os.path.exists('./artificial_expert_labels/'):
+        os.makedirs('./artificial_expert_labels/')
     pred_file = f'{args.exp_dir}_{args.dataset.lower()}_expert{args.ex_strength}.{args.seed}@{args.n_labeled}_predictions.json'
     with open(f'artificial_expert_labels/{pred_file}', 'w') as f:
         json.dump(predictions, f)

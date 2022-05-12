@@ -100,11 +100,11 @@ for approach in APPROACHES:
     plt.fill_between(std_bacc[approach].keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
 plt.xlabel('Number of Expert Labels', fontsize=14)
 plt.ylabel('F0.5-Score', fontsize=14)
-#plt.title(f'Predicted Expert Performance (Strength {strength})', fontsize=14)
+plt.title(f'Artificial Expert Labels Results (H_{strength})', fontsize=14)
 plt.minorticks_on()
 plt.grid(visible=True, which='major', alpha=0.2, color='grey', linestyle='-')
 plt.grid(visible=True, which='minor', alpha=0.1, color='grey', linestyle='-')
-#plt.legend(loc='lower right', fontsize=10)
+plt.legend(loc='lower right', fontsize=10)
 plt.savefig(f"plots/pred_results_cifar{strength}.png", transparent=True)
 plt.show()
 

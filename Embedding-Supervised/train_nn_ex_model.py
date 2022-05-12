@@ -64,6 +64,8 @@ def main(argv):
     mode2 = 'bin' if args['binary'] else 'mult'
     filename = f'EmbeddingNN_{mode2}_{args["dataset"]}_{mode}{args["n_strengths"]}.' \
                f'{args["split_seed"]}@{args["labels"]}_predictions.json'
+    if not os.path.exists('./artificial_expert_labels/'):
+        os.makedirs('./artificial_expert_labels/')
     with open(f'artificial_expert_labels/{filename}', 'w') as f:
         json.dump(preds, f)
     with open(os.getcwd()[

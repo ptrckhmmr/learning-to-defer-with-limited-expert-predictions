@@ -456,11 +456,16 @@ def main():
         torch.save(save_obj, os.path.join(output_dir, 'ckp.latest'))
     _, _ = evaluate(model, ema_model, dlval, criteria_x)
     logger.info("***** Generate Predictions *****")
+    if not os.path.exists('./artificial_expert_labels/'):
+        os.makedirs('./artificial_expert_labels/')
     if 'cifar' in args.dataset.lower():
         predictions = predict_cifar(model, ema_model, dltrain_x, dltrain_u, dlval)
     elif 'nih' in args.dataset.lower():
         predictions = predict_nih(model, ema_model, dltrain_x, dltrain_u, dlval)
-    with open(f'artificial_expert_labels/{args.exp_dir}_{args.dataset.lower()}_expert{args.ex_strength}.{args.seed}@{args.n_labeled}_predictions.json', 'w') as f:
+    pred_file = f'{args.exp_dir}_{args.dataset.lower()}_expert{args.ex_strength}.{args.seed}@{args.n_labeled}_predictions.json'
+    with open(f'artificial_expert_labels/{pred_file}', 'w') as f:
+        json.dump(predictions, f)
+    with open(os.getcwd()[:-len('Semi-Supervised')] + f'Human-AI-Systems/artificial_expert_labels/{pred_file}','w') as f:
         json.dump(predictions, f)
 
 
