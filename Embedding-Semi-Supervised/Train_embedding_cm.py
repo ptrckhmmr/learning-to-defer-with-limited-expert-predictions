@@ -571,7 +571,7 @@ def main():
     pred_file = f'{args.exp_dir}_{args.dataset.lower()}_expert{args.ex_strength}.{args.seed}@{args.n_labeled}_predictions.json'
     with open(f'artificial_expert_labels/{pred_file}', 'w') as f:
         json.dump(predictions, f)
-    with open(os.getcwd()[:-len('Embedding-Semi-Supervised')]+f'Human-AI-Systems/artificial_expert_labels/{pred_file}', 'w') as f:
+    with open(os.getcwd()[:-len('Embedding-Semi-Supervised')]+f'Learning-to-Defer-Algs/artificial_expert_labels/{pred_file}', 'w') as f:
         json.dump(predictions, f)
 
 

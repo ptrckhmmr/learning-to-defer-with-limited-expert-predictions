@@ -452,7 +452,7 @@ def fairness_test(args, classifier_model, val_loader, model, expert_fn, n_classe
         machine_scores += machine_scores_batch.cpu().tolist()
         human_scores += human_scores_batch.cpu().tolist()
 
-    img_dir = os.getcwd()[:-len('human-AI-systems/okati')] + 'nih_images/'
+    img_dir = os.getcwd()[:-len('Learning-to-Defer-Algs/okati')] + 'nih_images/'
     metadata = pd.read_csv(img_dir + 'nih_meta_data.csv')
 
     machine_preds = np.argmax(machine_scores, axis=1)

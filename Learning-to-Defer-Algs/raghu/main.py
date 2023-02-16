@@ -41,7 +41,7 @@ def main(argv):
     true_ex = f'TrueEx_{DATASET}'
     true_ex_preds = f'{true_ex}_{EX_STRENGTH}_labels'
 
-    # run human-AI collaboration with true expert
+    # run learning to defer with true expert
     if APPROACH == 'TrueExpert':
         args['approach'] = true_ex
         accuracies = []
@@ -55,7 +55,7 @@ def main(argv):
             sys.exit()
         # get ture expert prediction function
         true_expert_fns = true_expert.predict
-        # run human-AI collaboration for the true expert
+        # run learning to defer for the true expert
         for seed in [12345]:
             model_classifier = run_classifier(args, true_expert_fns, 200, TRAIN_BATCH_SIZE, TEST_BATCH_SIZE, seed,
                                               NUM_CLASSES)
@@ -66,13 +66,13 @@ def main(argv):
             coverages['cov'].append(best_metrics['coverage'])
             coverages['cov_by_class'].append(best_metrics['cov per class'])
 
-    # run human-AI collaboration with the predicted expert
+    # run learning to defer with the predicted expert
     else:
         pred_keys = [f'{APPROACH}_{DATASET}_expert{EX_STRENGTH}@{l}' for l in LABELS]
         # initiate arrays and dicts for the accuracies and coverages
         accuracies = {p: [] for p in pred_keys}
         coverages = {p: {'cov': [], 'cov_by_class': []} for p in pred_keys}
-        # run human-AI collaboration for different seeds
+        # run learning to defer for different seeds
         for seed in SEEDS:
             print(f'Seed: {seed}')
             print("-" * 40)
@@ -104,7 +104,7 @@ def main(argv):
                 except FileNotFoundError:
                     print(f'Predictions file for {p} not found')
                     pass
-    # save results of human-AI collaboration framework
+    # save results of learning to defer algorithm
     experiment_data = {}
     if APPROACH == 'TrueExpert':
         experiment_data['accuracy'] = [np.mean(accuracies),  np.std(accuracies[0])]

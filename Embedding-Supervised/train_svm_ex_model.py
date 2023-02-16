@@ -47,7 +47,7 @@ def main(argv):
     with open(f'artificial_expert_labels/{filename}', 'w') as f:
         json.dump(preds, f)
     with open(os.getcwd()[
-              :-len('Embedding-Supervised')] + f'Human-AI-Systems/artificial_expert_labels/{filename}','w') as f:
+              :-len('Embedding-Supervised')] + f'Learning-to-Defer-Algs/artificial_expert_labels/{filename}','w') as f:
         json.dump(preds, f)
 
 

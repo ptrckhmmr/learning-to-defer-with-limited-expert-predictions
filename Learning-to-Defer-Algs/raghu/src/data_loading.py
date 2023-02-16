@@ -215,14 +215,14 @@ class NIH_Dataloader():
         self.train_batch_size = train_batch_size
         self.test_batch_size = test_batch_size
 
-        img_dir = os.getcwd()[:-len('human_AI_systems/okati')] + 'nih_images/'
+        img_dir = os.getcwd()[:-len('Learning-to-Defer-Algs/raghu')] + 'nih_images/'
         individual_labels = pd.read_csv(img_dir+'nih_labels.csv')
         data = individual_labels[individual_labels['Reader ID'] == labeler_id]
         x_data = np.array(data['Image ID'])
         y_data = np.array(data[target+'_GT_Label'])
 
         # split train and test data
-        train_index, test_index = self.generate_patient_train_test_split(data, seed=12345)
+        train_index, test_index = self.generate_patient_train_test_split(data, seed=seed)
         x_train_data, x_test_data = x_data[train_index], x_data[test_index]
         y_train_data, y_test_data = y_data[train_index], y_data[test_index]
 

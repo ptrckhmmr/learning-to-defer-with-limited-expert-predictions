@@ -7,7 +7,6 @@ import torch.utils.data
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-
 class AverageMeter(object):
     """Computes and stores the average and current value
 
@@ -16,7 +15,6 @@ class AverageMeter(object):
     :ivar sum: Sum
     :ivar count: Count
     """
-
     def __init__(self):
         self.val = 0
         self.avg = 0
@@ -59,13 +57,12 @@ def accuracy(output, target, topk=(1,)):
 
 
 def metrics_print(net, expert_fn, n_classes, loader, test=False):
-    """Computes system metrics
+    """Computes metrics from classifier model
 
     :param net: Model
     :param expert_fn: Expert labels
     :param n_classes: number of classes
     :param loader: Dataloader
-    :param test: Whether to use the test set
 
     :return: Dict of metrics
     """
@@ -86,10 +83,8 @@ def metrics_print(net, expert_fn, n_classes, loader, test=False):
             _, predicted = torch.max(outputs.data, 1)
             batch_size = outputs.size()[0]  # batch_size
             exp_prediction = expert_fn(indices, test=test)
-            # print(f'DEBUG: \nlabels: {labels[:10]} \npredicted: {predicted[:10]} \nexp_predictions: {exp_prediction[:10]}')
             for i in range(0, batch_size):
                 r = (predicted[i].item() == n_classes)
-                prediction = predicted[i]
                 if predicted[i] == n_classes:
                     max_idx = 0
                     # get second max
@@ -111,8 +106,8 @@ def metrics_print(net, expert_fn, n_classes, loader, test=False):
                     exp_total += 1
                 real_total += 1
                 real_total_per_class[labels[i].item()] += 1
-    cov = total / real_total
-    cov_per_class = [total_per_class[c] / real_total_per_class[c] for c in range(n_classes)]
+    cov = total/real_total
+    cov_per_class = [total_per_class[c]/real_total_per_class[c] for c in range(n_classes)]
     to_print = {"coverage": cov,
                 "cov per class": cov_per_class,
                 "system accuracy": 100 * correct_sys / real_total,
@@ -123,10 +118,71 @@ def metrics_print(net, expert_fn, n_classes, loader, test=False):
     return to_print
 
 
-def fairness_print(net, expert_fn, n_classes, loader, args, test=False, seed=0):
+def metrics_print_2step(net_mod, net_exp, expert_fn, n_classes, loader, test=False):
+    """Computes metrics from classifier and expert model
+
+    :param net_mod: Classifier model
+    :param net_exp: Expert model
+    :param expert_fn: Expert labels
+    :param n_classes: Number of classes
+    :param loader: Dataloader
+    :param test: True if dataloader loads test set
+    :return: dict of metrics
+    """
+    correct = 0
+    correct_sys = 0
+    exp = 0
+    exp_total = 0
+    total = 0
+    real_total = 0
+    total_per_class = {c: 0 for c in range(n_classes)}
+    real_total_per_class = {c: 0 for c in range(n_classes)}
+    with torch.no_grad():
+        for data in loader:
+            images, labels, indices = data
+            images, labels = images.to(device), labels.to(device)
+            outputs_mod = net_mod(images)
+            outputs_exp = net_exp(images)
+            _, predicted = torch.max(outputs_mod.data, 1)
+            _, predicted_exp = torch.max(outputs_exp.data, 1)
+            batch_size = outputs_mod.size()[0]  # batch_size
+            exp_prediction = expert_fn(indices, test=test)
+            for i in range(0, batch_size):
+                r_score = 1 - outputs_mod.data[i][predicted[i].item()].item()
+                r_score = r_score - outputs_exp.data[i][1].item()
+                r = 0
+                if r_score >= 0:
+                    r = 1
+                else:
+                    r = 0
+                if r == 0:
+                    total += 1
+                    total_per_class[labels[i].item()] += 1
+                    correct += (predicted[i] == labels[i]).item()
+                    correct_sys += (predicted[i] == labels[i]).item()
+                if r == 1:
+                    exp += (exp_prediction[i] == labels[i].item())
+                    correct_sys += (exp_prediction[i] == labels[i].item())
+                    exp_total += 1
+                real_total += 1
+                real_total_per_class[labels[i].item()] += 1
+    cov = total/real_total
+    cov_per_class = [total_per_class[c]/real_total_per_class[c] for c in range(n_classes)]
+    to_print = {"coverage": cov,
+                "cov per class": cov_per_class,
+                "system accuracy": 100 * correct_sys / real_total,
+                "expert accuracy": 100 * exp / (exp_total + 0.0001),
+                "classifier accuracy": 100 * correct / (total + 0.0001),
+                "alone classifier": 0}
+    print(to_print)
+    return to_print
+
+
+def fairness_print(net_mod, net_exp, expert_fn, n_classes, loader, args, test=False, seed=0):
     """Computes fairness metrics w.r.t. the patients age and gender for the NIH dataset
 
-    :param net: Model
+    :param net_mod: Model
+    :param net_exp: Expert Model
     :param expert_fn: Expert labels
     :param n_classes: number of classes
     :param loader: Dataloader
@@ -134,9 +190,9 @@ def fairness_print(net, expert_fn, n_classes, loader, args, test=False, seed=0):
     :param test: Whether or not to use the test set
     :param seed: Random seed
 
-    :return:
+    :return: Dict of metrics
     """
-    img_dir = os.getcwd()[:-len('human-AI-systems/mozannar_sontag')] + 'nih_images/'
+    img_dir = os.getcwd()[:-len('Learning-to-Defer-Algs/raghu')] + 'nih_images/'
     metadata = pd.read_csv(img_dir + 'nih_meta_data.csv')
     correct = []
     correct_sys = []
@@ -148,30 +204,26 @@ def fairness_print(net, expert_fn, n_classes, loader, args, test=False, seed=0):
     exp_total = 0
     total = 0
     real_total = 0
-    alone_correct = []
     total_per_class = {c: 0 for c in range(n_classes)}
     real_total_per_class = {c: 0 for c in range(n_classes)}
     with torch.no_grad():
         for data in loader:
             images, labels, indices = data
             images, labels = images.to(device), labels.to(device)
-            outputs = net(images)
-            _, predicted = torch.max(outputs.data, 1)
-            batch_size = outputs.size()[0]  # batch_size
+            outputs_mod = net_mod(images)
+            outputs_exp = net_exp(images)
+            _, predicted = torch.max(outputs_mod.data, 1)
+            _, predicted_exp = torch.max(outputs_exp.data, 1)
+            batch_size = outputs_mod.size()[0]  # batch_size
             exp_prediction = expert_fn(indices, test=test)
             for i in range(0, batch_size):
-                r = (predicted[i].item() == n_classes)
-                prediction = predicted[i]
-                if predicted[i] == n_classes:
-                    max_idx = 0
-                    # get second max
-                    for j in range(0, n_classes):
-                        if outputs.data[i][j] >= outputs.data[i][max_idx]:
-                            max_idx = j
-                    prediction = max_idx
+                r_score = 1 - outputs_mod.data[i][predicted[i].item()].item()
+                r_score = r_score - outputs_exp.data[i][1].item()
+                r = 0
+                if r_score >= 0:
+                    r = 1
                 else:
-                    prediction = predicted[i]
-                alone_correct.append((prediction == labels[i]).item())
+                    r = 0
                 if r == 0:
                     total += 1
                     total_per_class[labels[i].item()] += 1
@@ -187,10 +239,10 @@ def fairness_print(net, expert_fn, n_classes, loader, args, test=False, seed=0):
                     exp_total += 1
                 real_total += 1
                 real_total_per_class[labels[i].item()] += 1
+
                 gender.append(metadata.loc[metadata['Image Index'] == indices[i]]['Patient Gender'].values[0])
                 age.append(metadata.loc[metadata['Image Index'] == indices[i]]['Patient Age'].values[0])
 
     os.makedirs(os.path.join(os.getcwd(), 'fairness'), exist_ok=True)
-    fairness_results = pd.DataFrame(
-        {'correct': correct_sys, 'fpr': fpr_sys, 'fnr': fnr_sys, 'gender': gender, 'age': age})
+    fairness_results = pd.DataFrame({'correct': correct_sys, 'fpr': fpr_sys, 'fnr': fnr_sys, 'gender': gender, 'age': age})
     fairness_results.to_csv(f'fairness/fair_{args["approach"]}_{args["ex_strength"]}ex_{seed}.csv')

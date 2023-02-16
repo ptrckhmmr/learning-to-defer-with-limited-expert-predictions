@@ -103,9 +103,9 @@ class CIFAR100_Dataloader:
 
         if self.small_version:
             np.random.seed(self.seed)
-            train_indices = np.random.choice(np.arange(0, 40000, 1), 5000, replace=False)
+            train_indices = np.random.choice(np.arange(0, 40000, 1), 4000, replace=False)
             val_indices = np.random.choice(np.arange(0, 10000, 1), 1000, replace=False)
-            test_indices = np.random.choice(np.arange(0, 10000, 1), 10000, replace=False)
+            test_indices = np.random.choice(np.arange(0, 10000, 1), 1000, replace=False)
 
             self.trainset = torch.utils.data.Subset(self.trainset, train_indices)
             self.valset = torch.utils.data.Subset(self.valset, val_indices)
@@ -215,7 +215,7 @@ class NIH_Dataloader():
         self.train_batch_size = train_batch_size
         self.test_batch_size = test_batch_size
 
-        img_dir = os.getcwd()[:-len('human-AI-systems/mozannar_sontag')] + 'nih_images/'
+        img_dir = os.getcwd()[:-len('Learning-to-Defer-Algs/okati')] + 'nih_images/'
         individual_labels = pd.read_csv(img_dir+'nih_labels.csv')
         data = individual_labels[individual_labels['Reader ID'] == labeler_id]
         x_data = np.array(data['Image ID'])
