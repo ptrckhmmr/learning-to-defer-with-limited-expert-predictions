@@ -272,5 +272,6 @@ def find_machine_samples(machine_loss, hloss):
     diff = machine_loss - hloss
     diff = diff.cpu().numpy()
     machine_list = np.where(diff < 0)[0]
-
+    if len(machine_list) < 0.2*len(machine_loss):
+        machine_list = np.argsort(diff)[:int(0.2*len(machine_loss))]
     return torch.tensor(machine_list, device='cuda')

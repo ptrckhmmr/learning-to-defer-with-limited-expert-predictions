@@ -1,3 +1,5 @@
+import os
+import pandas as pd
 import torch
 import torch.nn.parallel
 import torch.optim
@@ -174,3 +176,73 @@ def metrics_print_2step(net_mod, net_exp, expert_fn, n_classes, loader, test=Fal
                 "alone classifier": 0}
     print(to_print)
     return to_print
+
+
+def fairness_print(net_mod, net_exp, expert_fn, n_classes, loader, args, test=False, seed=0):
+    """Computes fairness metrics w.r.t. the patients age and gender for the NIH dataset
+
+    :param net_mod: Model
+    :param net_exp: Expert Model
+    :param expert_fn: Expert labels
+    :param n_classes: number of classes
+    :param loader: Dataloader
+    :param args: Run parameters
+    :param test: Whether or not to use the test set
+    :param seed: Random seed
+
+    :return: Dict of metrics
+    """
+    img_dir = os.getcwd()[:-len('human-AI-systems/raghu')] + 'nih_images/'
+    metadata = pd.read_csv(img_dir + 'nih_meta_data.csv')
+    correct = []
+    correct_sys = []
+    fpr_sys = []
+    fnr_sys = []
+    exp = []
+    gender = []
+    age = []
+    exp_total = 0
+    total = 0
+    real_total = 0
+    total_per_class = {c: 0 for c in range(n_classes)}
+    real_total_per_class = {c: 0 for c in range(n_classes)}
+    with torch.no_grad():
+        for data in loader:
+            images, labels, indices = data
+            images, labels = images.to(device), labels.to(device)
+            outputs_mod = net_mod(images)
+            outputs_exp = net_exp(images)
+            _, predicted = torch.max(outputs_mod.data, 1)
+            _, predicted_exp = torch.max(outputs_exp.data, 1)
+            batch_size = outputs_mod.size()[0]  # batch_size
+            exp_prediction = expert_fn(indices, test=test)
+            for i in range(0, batch_size):
+                r_score = 1 - outputs_mod.data[i][predicted[i].item()].item()
+                r_score = r_score - outputs_exp.data[i][1].item()
+                r = 0
+                if r_score >= 0:
+                    r = 1
+                else:
+                    r = 0
+                if r == 0:
+                    total += 1
+                    total_per_class[labels[i].item()] += 1
+                    correct.append((predicted[i] == labels[i]).item())
+                    correct_sys.append((predicted[i] == labels[i]).item())
+                    fpr_sys.append((predicted[i].item() == 1) and (labels[i].item() == 0))
+                    fnr_sys.append((predicted[i].item() == 0) and (labels[i].item() == 1))
+                if r == 1:
+                    exp.append((exp_prediction[i] == labels[i].item()))
+                    correct_sys.append((exp_prediction[i] == labels[i].item()))
+                    fpr_sys.append((exp_prediction[i] == 1) and (labels[i].item() == 0))
+                    fnr_sys.append((exp_prediction[i] == 0) and (labels[i].item() == 1))
+                    exp_total += 1
+                real_total += 1
+                real_total_per_class[labels[i].item()] += 1
+
+                gender.append(metadata.loc[metadata['Image Index'] == indices[i]]['Patient Gender'].values[0])
+                age.append(metadata.loc[metadata['Image Index'] == indices[i]]['Patient Age'].values[0])
+
+    os.makedirs(os.path.join(os.getcwd(), 'fairness'), exist_ok=True)
+    fairness_results = pd.DataFrame({'correct': correct_sys, 'fpr': fpr_sys, 'fnr': fnr_sys, 'gender': gender, 'age': age})
+    fairness_results.to_csv(f'fairness/fair_{args["approach"]}_{args["ex_strength"]}ex_{seed}.csv')

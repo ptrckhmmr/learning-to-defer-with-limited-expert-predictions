@@ -83,7 +83,7 @@ class NihExpert:
                 self.image_id_to_trueex_label = json.load(json_file)
         imgs = list(self.image_id_to_trueex_label.keys())
         imgs_pred = list(self.image_id_to_artificialex_label.keys())
-        assert imgs == imgs_pred
+        assert all([imgs[i] in imgs_pred for i in range(len(imgs))])
 
     def predict(self, image_ids, test=False):
         """Returns the experts artificial_expert_labels for the given image ids. Works only for image ids that are labeled by the expert

@@ -103,9 +103,9 @@ class CIFAR100_Dataloader:
 
         if self.small_version:
             np.random.seed(self.seed)
-            train_indices = np.random.choice(np.arange(0, 40000, 1), 4000, replace=False)
+            train_indices = np.random.choice(np.arange(0, 40000, 1), 5000, replace=False)
             val_indices = np.random.choice(np.arange(0, 10000, 1), 1000, replace=False)
-            test_indices = np.random.choice(np.arange(0, 10000, 1), 1000, replace=False)
+            test_indices = np.random.choice(np.arange(0, 10000, 1), 10000, replace=False)
 
             self.trainset = torch.utils.data.Subset(self.trainset, train_indices)
             self.valset = torch.utils.data.Subset(self.valset, val_indices)
@@ -222,7 +222,7 @@ class NIH_Dataloader():
         y_data = np.array(data[target+'_GT_Label'])
 
         # split train and test data
-        train_index, test_index = self.generate_patient_train_test_split(data, seed=seed)
+        train_index, test_index = self.generate_patient_train_test_split(data, seed=12345)
         x_train_data, x_test_data = x_data[train_index], x_data[test_index]
         y_train_data, y_test_data = y_data[train_index], y_data[test_index]
 

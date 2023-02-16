@@ -1,8 +1,16 @@
 plots/
 results/
+monzannar_test/
 monzannar_sontag/experiments
 monzannar_sontag/data
 raghu/experiments
 raghu/data
 okati/experiments
 okati/data
+analyze_artex_labels_cifar.py
+analyze_artex_labels_nih.py
+analyze_system_accuracies_cifar.py
+analyze_system_accuracies_nih.py
+analyze_system_coverages_cifar.py
+analyze_system_coverages_cifar_2.py
+copy_checkpoints.sh

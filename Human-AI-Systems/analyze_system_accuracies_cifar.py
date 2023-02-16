@@ -2,18 +2,19 @@ import json
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import pandas as pd
+plt.rc('font', family='Times New Roman', size=13)
 
 DATASET = 'cifar100'
 EX_STRENGTH = [60, 90]
-FRAMEWORKS = {'monzannar_sontag': ['a) Monzannar and Sontag', 50],
-              'raghu': ['b) Raghu et al.', 200],
-              'okati': ['c) Okati et al.', 100]}
+FRAMEWORKS = {'monzannar_sontag': ['a) Mozannar and Sontag (2020)', 50],
+              'raghu': ['b) Raghu et al. (2019)', 200],
+              'okati': ['c) Okati, De, and Rodriguez (2021)', 100]}
 APPROACHES = {'FixMatch': ['FixMatch', 'lightgreen'],
               'CoMatch': ['CoMatch', 'green'],
               'EmbeddingNN_bin': ['Embedding-NN', 'blue'],
               'EmbeddingSVM_bin': ['Embedding-SVM', 'darkblue'],
-              'EmbeddingFM_bin': ['Embedding-FixMatch (ours)', 'yellow'],
-              'EmbeddingCM_bin': ['Embedding-CoMatch (ours)', 'orange']}
+              'EmbeddingFM_bin': ['Embedding-FixMatch', 'yellow'],
+              'EmbeddingCM_bin': ['Embedding-CoMatch', 'orange']}
 LABELS = ['40', '80', '120', '200', '400', '1000', '5000']
 SEEDS = [0, 1, 2, 3, 123]
 best_ex_performance = {60: 67.92, 90: 92.62, 95: 96.13, 4295342357: 83.89}
@@ -26,11 +27,11 @@ legend = [None] * 9
 for s, strength in enumerate(EX_STRENGTH):
     for f, framework in enumerate(FRAMEWORKS.keys()):
 
-        with open(f'{framework}/results/TrueExpert_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
+        with open(f'{framework}/results/data/TrueExpert_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
             true_ex_results = json.load(file)
 
         baxes = plt.subplot(grid[g])
-        legend[0] = baxes.plot(LABELS, [true_ex_results['accuracy'][0]/true_ex_results['accuracy'][0]*100]*len(LABELS), label='Complete Expert Labels', color='black', linestyle='--')[0]
+        legend[0] = baxes.plot(LABELS, [true_ex_results['accuracy'][0]/true_ex_results['accuracy'][0]*100]*len(LABELS), label='Complete Expert Predictions', color='black', linestyle='--')[0]
         if strength == 90:
             legend[1] = baxes.plot(LABELS, [best_ex_performance[strength]/true_ex_results['accuracy'][0]*100]*len(LABELS), label='Human Expert Alone', color='grey', linestyle='dashdot')[0]
         else:
@@ -38,10 +39,10 @@ for s, strength in enumerate(EX_STRENGTH):
         total_results.append([framework, strength, 'True Expert'] + [true_ex_results['accuracy'][0]/100]*len(LABELS))
         for a, approach in enumerate(APPROACHES.keys()):
             try:
-                with open(f'{framework}/results/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
+                with open(f'{framework}/results/data/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json', 'r') as file:
                     results = json.load(file)
             except FileNotFoundError:
-                print(f'result file {framework}/results/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json not found')
+                print(f'result file {framework}/results/data/{approach}_{strength}ex_{FRAMEWORKS[framework][1]}epochs_experiment_{DATASET}_results.json not found')
                 continue
             acc = {}
             std = {}
@@ -62,12 +63,12 @@ for s, strength in enumerate(EX_STRENGTH):
 
             baxes.fill_between(acc.keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
         if framework == 'monzannar_sontag':
-            plt.ylabel(r'Synthetic Expert $\mathbf{H}_{'+str(strength)+'}$ \n % of System Test Accuracy\n with Complete Expert Labels\n', fontsize=12)
+            plt.ylabel(r'Synthetic Expert $H_{'+str(strength)+'}$ \n % of System Test Accuracy\n with Complete Expert Predictions', fontsize=14)
         if strength == 90:
-            plt.xlabel('Number of Expert Labels ($\mathit{l}$)', fontsize=12)
+            plt.xlabel('Number of Expert Predictions $\mathit{l}$', fontsize=14)
 
         if strength == 60:
-            plt.title(f'{FRAMEWORKS[framework][0]}', fontsize=15)
+            plt.title(f'{FRAMEWORKS[framework][0]}', fontsize=18)
 
 
         plt.minorticks_on()
@@ -78,7 +79,7 @@ for s, strength in enumerate(EX_STRENGTH):
             g+=1
         g += 1
 
-fig.legend(handles=legend, loc='lower center', ncol=4, fontsize=12)
+fig.legend(handles=legend, loc='lower center', ncol=4, fontsize=14)
 plt.savefig('plots/results_cifar_relative.png', transparent=True)
 plt.savefig('plots/results_cifar_relative.pdf', bbox_inches='tight')
 plt.show()

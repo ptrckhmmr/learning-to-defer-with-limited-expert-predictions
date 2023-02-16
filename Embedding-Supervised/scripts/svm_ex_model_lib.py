@@ -45,7 +45,7 @@ class SVMExpertModel(EmbeddingModel):
         self.svc = None
         if self.args['n_strengths'] is not None or self.args['dataset'] == 'cifar10h':
             if self.args['dataset'] == 'nih':
-                self.expert = NIHExpert(id=4295342357, n_classes=args['num_classes'], target='Airspace_Opacity')
+                self.expert = NIHExpert(id=args['n_strengths'], n_classes=args['num_classes'], target='Airspace_Opacity')
             else:
                 self.expert = CIFAR100Expert(self.args['num_classes'], self.args['n_strengths'], 1, 0, seed=args['ex_seed'])
         else:
@@ -59,7 +59,6 @@ class SVMExpertModel(EmbeddingModel):
                 prep.get_train_val_test_data(dataset=args['dataset'], expert=self.expert, binary=args['binary'], 
                                              gt_targets=True,model=args['emb_model'], L=args['labels'], 
                                              seed=args['seed'], valid=False)
-
         warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
         warnings.filterwarnings("ignore", category=FutureWarning)
 

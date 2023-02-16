@@ -37,11 +37,6 @@ def set_model(args):
         - ema_model: Initialized ema model
     """
     model = WideResnet(n_classes=args.n_classes, k=args.wresnet_k, n=args.wresnet_n, proj=True)
-    if args.checkpoint:
-        checkpoint = torch.load(args.checkpoint)
-        msg = model.load_state_dict(checkpoint, strict=False)
-        assert set(msg.missing_keys) == {"classifier.weight", "classifier.bias"}
-        print('loaded from checkpoint: %s'%args.checkpoint)    
     model.train()
     model.cuda()  
     
@@ -72,7 +67,8 @@ def ema_model_update(model, ema_model, ema_m):
 
     for buffer_train, buffer_eval in zip(model.buffers(), ema_model.buffers()):
         buffer_eval.copy_(buffer_train)  
-        
+
+
 def train_one_epoch(epoch,
                     model,
                     ema_model,

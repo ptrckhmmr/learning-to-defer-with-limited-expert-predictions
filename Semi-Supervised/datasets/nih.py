@@ -109,7 +109,7 @@ def load_data_train(L, expert):
     y_data = y_ex_data
 
     # split train and test data
-    train_index, _ = generate_patient_train_test_split(data, 1234)
+    train_index, _ = generate_patient_train_test_split(data, 12345)
     x_train_data = x_data[train_index]
     y_train_data = y_data[train_index]
     y_gt_train_data = y_gt_data[train_index]
@@ -161,7 +161,7 @@ def load_data_val(expert):
     y_data = y_ex_data
 
     # split train and test data
-    _, test_index = generate_patient_train_test_split(data, 1234)
+    _, test_index = generate_patient_train_test_split(data, 12345)
     x_test_data = x_data[test_index]
     y_test_data = y_data[test_index]
 
@@ -188,7 +188,7 @@ class NIH_Dataset(Dataset):
         self.labels = labels
         self.mode = mode
         # directory of the images fro mthe NIH dataset
-        img_dir = os.getcwd()[:-len('Semi-Supervised')] + 'nih_images/images_indlabels/'
+        img_dir = os.getcwd()[:-len('Semi-Supervised')] + 'nih_images/'
         images = []
         for filename in self.image_ids:
             img = Image.open(img_dir + filename)

@@ -32,6 +32,7 @@ def main(argv):
     }
     if args['dataset'] == 'nih':
         args['num_classes'] = 2
+        args['binary'] = False
     else:
         args['num_classes'] = 20
     # get the training directory
@@ -63,7 +64,7 @@ def main(argv):
     mode = 'binary' if args['binary'] else 'expert'
     mode2 = 'bin' if args['binary'] else 'mult'
     filename = f'EmbeddingNN_{mode2}_{args["dataset"]}_{mode}{args["n_strengths"]}.' \
-               f'{args["split_seed"]}@{args["labels"]}_predictions.json'
+               f'{args["seed"]}@{args["labels"]}_predictions.json'
     if not os.path.exists('./artificial_expert_labels/'):
         os.makedirs('./artificial_expert_labels/')
     with open(f'artificial_expert_labels/{filename}', 'w') as f:

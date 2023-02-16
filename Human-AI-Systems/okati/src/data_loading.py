@@ -222,7 +222,7 @@ class NIH_Dataloader():
         y_data = np.array(data[target+'_GT_Label'])
 
         # split train and test data
-        train_index, test_index = self.generate_patient_train_test_split(data, seed=seed)
+        train_index, test_index = self.generate_patient_train_test_split(data, seed=12345)
         x_train_data, x_test_data = x_data[train_index], x_data[test_index]
         y_train_data, y_test_data = y_data[train_index], y_data[test_index]
 

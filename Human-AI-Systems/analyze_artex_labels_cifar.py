@@ -29,9 +29,9 @@ def get_latex_table(acc, std, labels):
         out += f'\n{b}'
         for i, l in enumerate(labels):
             if b == best[l]:
-                out += ' & \\textbf{'+str(round(100*acc[b][l], 2))+'}'+f' ({round(100*std[b][l], 2)})'
+                out += ' & \\textbf{'+str(round(acc[b][l], 2))+'}'+f' ({round(std[b][l], 2)})'
             else:
-                out += f' & {round(100*acc[b][l], 2)} ({round(100*std[b][l], 2)})'
+                out += f' & {round(acc[b][l], 2)} ({round(std[b][l], 2)})'
 
         out += '\\\\'
     out += '\n \\midrule'
@@ -39,9 +39,9 @@ def get_latex_table(acc, std, labels):
         out += f'\n{a}'
         for i, l in enumerate(labels):
             if a == best[l]:
-                out += ' & \\textbf{' + str(round(100 * acc[a][l], 2)) + '}' + f'({round(100 * std[a][l], 2)})'
+                out += ' & \\textbf{' + str(round(acc[a][l], 2)) + '}' + f'({round(std[a][l], 2)})'
             else:
-                out += f' & {round(100 * acc[a][l], 2)} ({round(100 * std[a][l], 2)})'
+                out += f' & {round(acc[a][l], 2)} ({round(std[a][l], 2)})'
         out += '\\\\'
     out += '\n \\bottomrule'
     return out
@@ -81,31 +81,35 @@ for approach in APPROACHES.keys():
                     predictions = json.load(f)
                 cm = confusion_matrix(true_expert['test'], predictions['test'])
                 test_acc[approach][labels].append(accuracy_score(true_expert['test'], predictions['test']))
-                test_bacc[approach][labels].append(fbeta_score(true_expert['test'], predictions['test'], beta=0.5))
+                test_bacc[approach][labels].append(fbeta_score(true_expert['test'], predictions['test'], beta=0.5)*100)
             except FileNotFoundError:
                 print(f'{predictions_file} not found')
                 pass
         mean_acc[approach][labels] = np.mean(test_acc[approach][labels])
-        std_acc[approach][labels] = np.std(test_acc[approach][labels], ddof=1)/np.sqrt(np.size(test_acc[approach][labels]))
+        std_acc[approach][labels] = np.std(test_acc[approach][labels], ddof=1)
         mean_bacc[approach][labels] = np.mean(test_bacc[approach][labels])
-        std_bacc[approach][labels] = np.std(test_bacc[approach][labels], ddof=1)/np.sqrt(np.size(test_bacc[approach][labels]))
+        std_bacc[approach][labels] = np.std(test_bacc[approach][labels], ddof=1)
     total_results.append([approach] + list(mean_bacc[approach].values()))
 
-plt.figure(figsize=(8, 4.5))
+
+plt.rc('font', family='Times New Roman', size=13)
+plt.figure(figsize=(7, 4.5))
 plt.style.use('seaborn-colorblind')
 for approach in APPROACHES:
     plt.plot(mean_bacc[approach].keys(), mean_bacc[approach].values(), label=APPROACHES[approach][0], color=APPROACHES[approach][1], marker='o')
     fill_low = [mean_bacc[approach][l] - std_bacc[approach][l] for l in LABELS]
     fill_up = [mean_bacc[approach][l] + std_bacc[approach][l] for l in LABELS]
     plt.fill_between(std_bacc[approach].keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
-plt.xlabel('Number of Expert Labels', fontsize=14)
-plt.ylabel('F0.5-Score', fontsize=14)
-plt.title(f'Artificial Expert Labels Results (H_{strength})', fontsize=14)
+plt.xlabel('Number of Expert Predictions $\mathit{l}$', fontsize=15)
+plt.ylabel('F0.5-Score', fontsize=15)
+#plt.title(f'Artificial Expert Labels Results (H_{strength})', fontsize=18)
 plt.minorticks_on()
 plt.grid(visible=True, which='major', alpha=0.2, color='grey', linestyle='-')
-plt.grid(visible=True, which='minor', alpha=0.1, color='grey', linestyle='-')
-plt.legend(loc='lower right', fontsize=10)
+#plt.grid(visible=True, which='minor', alpha=0.1, color='grey', linestyle='-')
+#plt.legend(loc='lower right', fontsize=14)
+plt.tight_layout()
 plt.savefig(f"plots/pred_results_cifar{strength}.png", transparent=True)
+plt.savefig(f'plots/pred_results_cifar{strength}.pdf', bbox_inches='tight')
 plt.show()
 
 print(get_latex_table(mean_bacc, std_bacc, LABELS))

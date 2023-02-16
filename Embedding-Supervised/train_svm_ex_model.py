@@ -29,8 +29,10 @@ def main(argv):
     }
     if args['dataset'] == 'nih':
         args['num_classes'] = 2
+        args['binary'] = False
     else:
         args['num_classes'] = 20
+    print(f'args: {args}')
     # initiate the expert model
     ex_model = SVMExpertModel(args, wkdir)
     ex_model.train_svc(args['kernel'], args['C'], args['class_weight'])
@@ -57,7 +59,7 @@ if __name__ == '__main__':
     flags.DEFINE_integer('num_classes', 20, 'Number of classes')
     flags.DEFINE_integer('batch', 8, 'Batchsize')
     flags.DEFINE_integer('ex_strength', 4323195249, 'Number of expert strengths')
-    flags.DEFINE_boolean('binary', True, 'Flag for binary expert labels')
+    flags.DEFINE_boolean('binary', False, 'Flag for binary expert labels')
     flags.DEFINE_integer('n_labeled', 1000, 'Number of labeled images')
     flags.DEFINE_string('kernel', 'rbf', 'Kernel function')
     flags.DEFINE_integer('C', 5, 'Regularization parameter')

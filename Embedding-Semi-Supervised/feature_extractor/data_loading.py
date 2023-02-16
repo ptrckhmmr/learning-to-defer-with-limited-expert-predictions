@@ -268,7 +268,7 @@ def get_nih_data(expert, seed=123, valid=True, L=None, gt_targets=True, binary=T
         target = "Airspace_Opacity"
 
     individual_labels = pd.read_csv("data/nih_labels.csv")
-    img_dir = os.getcwd()[:-len('Embedding-Semi-Supervised')]+'nih_images/images_indlabels/'
+    img_dir = os.getcwd()[:-len('Embedding-Semi-Supervised')]+'nih_images/'
     if expert is not None:
         labeler_id = expert.labeler_id
         data = individual_labels[individual_labels['Reader ID'] == labeler_id]
@@ -337,7 +337,7 @@ def get_data_loader(train_data, test_data, val_data=None, batch_size=64, shuffle
         - val_loader: Dataloader for the val set (optional)
         - device: Active device
     """
-    # initiate data laoders for training and test data
+    # initiate data loaders for training and test data
     train_loader = DataLoader(train_data, batch_size, num_workers=4, pin_memory=True, shuffle=shuffle_train)
     test_loader = DataLoader(test_data, batch_size, num_workers=4, pin_memory=True)
 

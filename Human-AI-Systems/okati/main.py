@@ -13,6 +13,7 @@ from src.experts import Cifar100Expert, NihExpert
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 FLAGS = flags.FLAGS
 
+
 def main(argv):
     #############################################
     NUM_CLASSES = 20 if FLAGS.dataset == 'cifar100' else 2
@@ -57,7 +58,7 @@ def main(argv):
         # get ture expert prediction function
         true_expert_fns = true_expert.predict
         # run human-AI collaboration for the true expert
-        for seed in [1234]:
+        for seed in [12345]:
             print(f'Seed: {seed}')
             print("-" * 40)
             model_classifier = run_classifier(args, true_expert_fns, 100, TRAIN_BATCH_SIZE, TEST_BATCH_SIZE, seed,

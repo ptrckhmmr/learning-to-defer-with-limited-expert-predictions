@@ -191,9 +191,9 @@ def get_system_metrics(machine_preds, expert_preds, machine_idx, expert_idx, tar
     """
     targets = np.array(targets)
     machine_acc = accuracy_score(machine_preds, targets)
-    machine_task_subset_acc = accuracy_score(machine_preds[machine_idx], targets[machine_idx])
+    machine_task_subset_acc = accuracy_score(machine_preds[machine_idx], targets[machine_idx]) if len(machine_idx) > 1 else 0
     expert_acc = accuracy_score(expert_preds, targets)
-    expert_task_subset_acc = accuracy_score(expert_preds[expert_idx], targets[expert_idx])
+    expert_task_subset_acc = accuracy_score(expert_preds[expert_idx], targets[expert_idx]) if len(expert_idx) > 1 else 0
     machine_coverage = len(machine_idx)/len(targets)
     machine_cov_per_class = []
     for c in range(n_classes):

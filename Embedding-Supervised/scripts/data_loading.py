@@ -268,7 +268,7 @@ def get_nih_data(expert, seed=123, valid=True, L=None, gt_targets=True, binary=T
         target = 'Airspace_Opacity'
 
     individual_labels = pd.read_csv("data/nih_labels.csv")
-    img_dir = os.getcwd()[:-len('Embedding-Supervised')]+'nih_images/images_indlabels/'
+    img_dir = os.getcwd()[:-len('Embedding-Supervised')]+'nih_images/'
     if expert is not None:
         labeler_id = expert.labeler_id
         data = individual_labels[individual_labels['Reader ID'] == labeler_id]
@@ -283,7 +283,7 @@ def get_nih_data(expert, seed=123, valid=True, L=None, gt_targets=True, binary=T
         y_ex_data = 1*(y_gt_data == y_ex_data)
 
     # split train and test data
-    train_index, test_index = generate_patient_train_test_split(data, 1234)
+    train_index, test_index = generate_patient_train_test_split(data, 12345)
     x_train_data, x_test_data = x_data[train_index], x_data[test_index]
     y_gt_train_data, y_gt_test_data = y_gt_data[train_index], y_gt_data[test_index]
     y_ex_train_data, y_ex_test_data = y_ex_data[train_index], y_ex_data[test_index]

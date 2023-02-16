@@ -56,7 +56,7 @@ def main(argv):
         # get ture expert prediction function
         true_expert_fns = true_expert.predict
         # run human-AI collaboration for the true expert
-        for seed in [1234]:
+        for seed in [12345]:
             model_classifier = run_classifier(args, true_expert_fns, 200, TRAIN_BATCH_SIZE, TEST_BATCH_SIZE, seed,
                                               NUM_CLASSES)
             best_metrics = run_expert(args, model_classifier, true_expert_fns, EPOCHS, TRAIN_BATCH_SIZE,
@@ -107,7 +107,7 @@ def main(argv):
     # save results of human-AI collaboration framework
     experiment_data = {}
     if APPROACH == 'TrueExpert':
-        experiment_data['accuracy'] = [np.mean(accuracies),  np.std(accuracies[p])]
+        experiment_data['accuracy'] = [np.mean(accuracies),  np.std(accuracies[0])]
         experiment_data['coverage'] = [[np.mean(coverages['cov']), np.std(coverages['cov'])],
                                        [np.mean(coverages['cov_by_class'], axis=0).tolist(),
                                         np.std(coverages['cov_by_class'], axis=0).tolist()]]

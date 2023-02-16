@@ -14,7 +14,7 @@ import math
 
 from src.data_loading import CIFAR100_Dataloader, NIH_Dataloader
 from src.utils import load_from_checkpoint, save_to_checkpoint, log_test_metrics, get_train_dir
-from src.metrics import accuracy, AverageMeter, metrics_print, metrics_print_2step
+from src.metrics import accuracy, AverageMeter, metrics_print, metrics_print_2step, fairness_print
 from src.models import WideResNet, Resnet
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -30,6 +30,7 @@ def my_CrossEntropyLoss(outputs, labels):
     batch_size = outputs.size()[0]  # batch_size
     outputs = - torch.log2(outputs[range(batch_size), labels]+1e-12) # pick the values corresponding to the labels
     return torch.sum(outputs) / batch_size
+
 
 def train_classifier(args, train_loader, model, optimizer, scheduler, epoch):
     """Train classifier for one epoch on the training set
@@ -435,6 +436,7 @@ def run_expert(args, model_classifier, expert_fn, epochs, train_batch_size, test
             save_to_checkpoint(train_dir, epoch, model_expert, optimizer, scheduler, best_metrics, seed)
     best_metrics = metrics_print_2step(model_classifier, best_model, expert_fn, num_classes, test_loader, test=True)
     best_metrics['system loss'] = best_loss
+    #fairness_print(model_classifier, best_model, expert_fn, num_classes, test_loader, args, test=True, seed=seed)
     log_test_metrics(writer, epochs, best_metrics, num_classes)
     validate_expert(args, test_loader, best_model, expert_fn, test=True)
     save_to_checkpoint(train_dir, epochs, best_model, optimizer, scheduler, best_metrics, seed)

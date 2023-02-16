@@ -67,7 +67,7 @@ class NNExpertModel(EmbeddingModel):
 
         if self.args['n_strengths'] is not None:
             if self.args['dataset'] == 'nih':
-                self.expert = NIHExpert(id=4295342357, n_classes=args['num_classes'],
+                self.expert = NIHExpert(id=self.args['n_strengths'], n_classes=args['num_classes'],
                                         target='Airspace_Opacity')
             else:
                 self.expert = CIFAR100Expert(self.args['num_classes'], self.args['n_strengths'], 1, 0,
@@ -302,7 +302,10 @@ class NNExpertModel(EmbeddingModel):
                 target = target.to(self.device)
                 # get model artificial_expert_labels
                 with torch.no_grad():
-                    emb = self.emb_model(data)
+                    if self.args['dataset'] == 'nih':
+                        emb = self.emb_model(data, return_features=True)
+                    else:
+                        emb = self.emb_model(data)
                     output = self.model(emb)
                 # get predicted classes from model output
                 if self.args['binary']:

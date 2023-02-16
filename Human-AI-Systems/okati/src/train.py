@@ -9,6 +9,7 @@ import os
 from torch.utils.tensorboard.writer import SummaryWriter
 import copy
 import numpy as np
+import pandas as pd
 
 from src.data_loading import CIFAR100_Dataloader, NIH_Dataloader
 from src.utils import load_from_checkpoint, save_to_checkpoint, log_test_metrics, get_train_dir, find_machine_samples
@@ -17,6 +18,7 @@ from src.models import WideResNet, Resnet
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
 def one_hot(a, num_classes):
     """Get one hot encoding for class labels
 
@@ -24,7 +26,7 @@ def one_hot(a, num_classes):
     :param num_classes: Number of classes
     :return: One hot label
     """
-    a = a.astype(int)
+    a = np.array(a).astype(int)
     one_hot = np.squeeze(np.eye(num_classes)[a.reshape(-1)])
     epsilon = 0.0005
     for i in range(one_hot.shape[0]):
@@ -197,7 +199,7 @@ def run_classifier(args, expert_fn, epochs, train_batch_size, test_batch_size, s
     elif 'nih' in args['approach']:
         model_classifier = Resnet(num_classes)
         nih_dl = NIH_Dataloader(labeler_id=args['ex_strength'], train_batch_size=train_batch_size, test_batch_size=test_batch_size, seed=seed)
-        train_loader, test_loader = nih_dl.get_data_loader(validation=False)
+        train_loader, test_loader = nih_dl.get_data_loader()
         lr = 0.00001
     else:
         print('Dataset not defined')
@@ -342,7 +344,6 @@ def validate_expert(args, classifier_model, val_loader, model, expert_fn, n_clas
 
         E_batch = torch.tensor(one_hot(E_batch, num_classes=n_classes), dtype=torch.float).to(device)
 
-
         with torch.no_grad():
             machine_scores_batch = classifier_model(X_batch)
             machine_loss_batch = loss_func(machine_scores_batch, Y_batch)
@@ -361,7 +362,6 @@ def validate_expert(args, classifier_model, val_loader, model, expert_fn, n_clas
         targets += Y_batch.cpu().tolist()
         machine_scores += machine_scores_batch.cpu().tolist()
         human_scores += human_scores_batch.cpu().tolist()
-
 
         # measure accuracy and record loss
         prec1 = accuracy(gpred.data, g_labels_batch, topk=(1,))[0]
@@ -399,6 +399,89 @@ def validate_expert(args, classifier_model, val_loader, model, expert_fn, n_clas
     return metrics
 
 
+def fairness_test(args, classifier_model, val_loader, model, expert_fn, n_classes, test=True, seed=123):
+    """Analyze fairness for the NIH dataset w.r.t. the patients age and gender
+
+    :param args: Training arguments
+    :param classifier_model: Classifier model
+    :param val_loader: Dataloader
+    :param model: Expert model
+    :param expert_fn: Expert labels
+    :param n_classes: Number of classes
+    :param test: True if validation on the test set
+    :param seed: Random seed
+
+    :return:
+    """
+    loss_func = torch.nn.NLLLoss(reduction='none')
+
+    targets = []
+    indices = []
+    g_predictions = []
+    machine_scores = []
+    human_scores = []
+    # switch to evaluate mode
+    model.eval()
+
+    for i, (X_batch, Y_batch, idxs) in enumerate(val_loader):
+        batch_size = Y_batch.size()[0]
+        Y_batch = Y_batch.to(device)
+        X_batch = X_batch.to(device)
+        E_batch = expert_fn(idxs, test=test)
+
+        E_batch = torch.tensor(one_hot(E_batch, num_classes=n_classes), dtype=torch.float).to(device)
+
+
+        with torch.no_grad():
+            machine_scores_batch = classifier_model(X_batch)
+            machine_loss_batch = loss_func(machine_scores_batch, Y_batch)
+            human_scores_batch = E_batch
+            human_loss_batch = loss_func(human_scores_batch, Y_batch)
+
+        train_dir = get_train_dir(os.getcwd(), args, 'triage-classifier')
+        machine_indices = find_machine_samples(machine_loss_batch, human_loss_batch)
+        g_labels_batch = torch.tensor([0 if j in machine_indices else 1 for j in range(batch_size)]).to(device)
+
+        gpred = model(X_batch)
+        g_loss = loss_func(gpred, g_labels_batch)
+
+        g_predictions += torch.argmax(gpred, dim=1).cpu().tolist()
+
+        targets += Y_batch.cpu().tolist()
+        indices += idxs
+        machine_scores += machine_scores_batch.cpu().tolist()
+        human_scores += human_scores_batch.cpu().tolist()
+
+    img_dir = os.getcwd()[:-len('human-AI-systems/okati')] + 'nih_images/'
+    metadata = pd.read_csv(img_dir + 'nih_meta_data.csv')
+
+    machine_preds = np.argmax(machine_scores, axis=1)
+    human_preds = np.argmax(human_scores, axis=1)
+    correct = []
+    fpr = []
+    fnr = []
+    gender = []
+    age = []
+    for j, g_p in enumerate(g_predictions):
+        gender.append(metadata.loc[metadata['Image Index'] == indices[j]]['Patient Gender'].values[0])
+        age.append(metadata.loc[metadata['Image Index'] == indices[j]]['Patient Age'].values[0])
+        if g_p == 0:
+            correct.append((machine_preds[j] == targets[j]))
+            fpr.append((machine_preds[j] == 1) and (targets[j] == 0))
+            fnr.append((machine_preds[j] == 0) and (targets[j] == 1))
+        elif g_p == 1:
+            correct.append((human_preds[j] == targets[j]))
+            fpr.append((human_preds[j] == 1) and (targets[j] == 0))
+            fnr.append((human_preds[j] == 0) and (targets[j] == 1))
+        else:
+            print('error')
+            sys.exit()
+
+    os.makedirs(os.path.join(os.getcwd(), 'fairness'), exist_ok=True)
+    fairness_results = pd.DataFrame({'correct': correct, 'fpr': fpr, 'fnr': fnr, 'gender': gender, 'age': age})
+    fairness_results.to_csv(f'fairness/fair_{args["approach"]}_{args["ex_strength"]}ex_{seed}.csv')
+
+
 def run_expert(args, model_classifier, expert_fn, epochs, train_batch_size, test_batch_size, seed, num_classes):
     """Run training for the expert model
 
@@ -426,7 +509,7 @@ def run_expert(args, model_classifier, expert_fn, epochs, train_batch_size, test
         lr = 0.1
     elif 'nih' in args['approach']:
         nih_dl = NIH_Dataloader(labeler_id=args['ex_strength'], train_batch_size=train_batch_size, test_batch_size=test_batch_size, seed=seed)
-        train_loader, test_loader = nih_dl.get_data_loader(validation=False)
+        train_loader, test_loader = nih_dl.get_data_loader()
         val_loader = None
         model_expert = Resnet(2)
         lr = 0.001
@@ -471,9 +554,9 @@ def run_expert(args, model_classifier, expert_fn, epochs, train_batch_size, test
             loss = train_expert(args, model_classifier, train_loader, model_expert, optimizer, scheduler,
                                 epoch, expert_fn, num_classes)
             val_metrics = validate_expert(args, model_classifier, val_loader, model_expert,
-                                          epoch, expert_fn, num_classes, test=False)
+                                          expert_fn, num_classes, test=False)
             test_metrics = validate_expert(args, model_classifier, test_loader, model_expert,
-                                           epoch, expert_fn, num_classes)
+                                           expert_fn, num_classes)
             val_acc = val_metrics['system accuracy']
             test_metrics['system loss'] = loss
             # log metrics and save framework to checkpoint
@@ -496,7 +579,7 @@ def run_expert(args, model_classifier, expert_fn, epochs, train_batch_size, test
             loss = train_expert(args, model_classifier, train_loader, model_expert, optimizer, scheduler,
                                 epoch, expert_fn, num_classes)
             test_metrics = validate_expert(args, model_classifier, test_loader, model_expert,
-                                           epoch, expert_fn, num_classes)
+                                           expert_fn, num_classes)
             test_metrics['system loss'] = loss
             # log metrics and save framework to checkpoint
             log_test_metrics(writer, epoch, test_metrics, num_classes)
@@ -507,7 +590,8 @@ def run_expert(args, model_classifier, expert_fn, epochs, train_batch_size, test
                 best_expert = copy.deepcopy(model_expert)
                 save_to_checkpoint(train_dir, epoch, model_expert, optimizer, scheduler, best_metrics, seed)
     save_to_checkpoint(train_dir, epochs, best_expert, optimizer, scheduler, best_metrics, seed)
-    best_metrics = validate_expert(args, model_classifier, test_loader, best_expert, epochs, expert_fn, num_classes)
+    best_metrics = validate_expert(args, model_classifier, test_loader, best_expert, expert_fn, num_classes)
+    #fairness_test(args, model_classifier, test_loader, best_expert, expert_fn, num_classes, seed=seed)
     best_metrics['system loss'] = best_loss
     log_test_metrics(writer, epochs, best_metrics, num_classes)
 

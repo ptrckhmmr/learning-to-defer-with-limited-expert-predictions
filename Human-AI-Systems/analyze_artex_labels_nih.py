@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 
-def generate_patient_train_test_split(data, seed=1234):
+def generate_patient_train_test_split(data, seed=12345):
     """Generate train test split based on patient ids
 
     :param data: Dataframe containing the image ids and patient ids
@@ -51,9 +51,9 @@ def get_latex_table(acc, std, labels):
         out += f'\n{b}'
         for i, l in enumerate(labels):
             if b == best[l]:
-                out += ' & \\textbf{'+str(round(100*acc[b][l], 2))+'}'+f'({round(100*std[b][l], 2)})'
+                out += ' & \\textbf{'+str(round(acc[b][l], 2))+'}'+f' ($\pm${round(std[b][l], 2)})'
             else:
-                out += f' & {round(100*acc[b][l], 2)} ({round(100*std[b][l], 2)})'
+                out += f' & {round(acc[b][l], 2)} ($\pm${round(std[b][l], 2)})'
 
         out += '\\\\'
     out += '\n \\midrule'
@@ -61,15 +61,15 @@ def get_latex_table(acc, std, labels):
         out += f'\n{a}'
         for i, l in enumerate(labels):
             if a == best[l]:
-                out += ' & \\textbf{' + str(round(100 * acc[a][l], 2)) + '}' + f' ({round(100 * std[a][l], 2)})'
+                out += ' & \\textbf{' + str(round(acc[a][l], 2)) + '}' + f' ($\pm${round(std[a][l], 2)})'
             else:
-                out += f' & {round(100 * acc[a][l], 2)} ({round(100 * std[a][l], 2)})'
+                out += f' & {round(acc[a][l], 2)} ($\pm${round(std[a][l], 2)})'
         out += '\\\\'
     out += '\n \\bottomrule'
     return out
 
 
-strength = 4295342357
+strength = 4295342357 #4295194124
 APPROACHES = {'FixMatch': ['FixMatch', 'lightgreen'],
               'CoMatch': ['CoMatch', 'green'],
               'EmbeddingNN_mult': ['Embedding-NN', 'blue'],
@@ -106,8 +106,8 @@ for approach in APPROACHES.keys():
                 preds = [predictions[img_id] for img_id in true_expert['Image ID']]
                 bin_preds = 1*(true_expert['Airspace_Opacity_GT_Label']==preds)
                 true_preds = 1*(true_expert['Airspace_Opacity_GT_Label']==true_expert['Airspace_Opacity_Expert_Label'])
-                test_acc[approach][labels].append(fbeta_score(true_preds, bin_preds, beta=0.5))
-                test_bacc[approach][labels].append(fbeta_score(true_preds, bin_preds, beta=2))
+                test_acc[approach][labels].append(fbeta_score(true_preds, bin_preds, beta=0.5)*100)
+                test_bacc[approach][labels].append(fbeta_score(true_preds, bin_preds, beta=2)*100)
             except FileNotFoundError:
                 print(f'{predictions_file} not found')
                 pass
@@ -117,25 +117,28 @@ for approach in APPROACHES.keys():
         std_bacc[approach][labels] = np.std(test_bacc[approach][labels])
     total_results.append([approach] + list(mean_bacc[approach].values()))
 
-plt.figure(figsize=(8, 4.5))
+plt.rc('font', family='Times New Roman', size=13)
+plt.figure(figsize=(7, 4.5))
 plt.style.use('seaborn-colorblind')
 for approach in APPROACHES:
     plt.plot(mean_acc[approach].keys(), mean_acc[approach].values(), label=APPROACHES[approach][0], color=APPROACHES[approach][1], marker='o')
     fill_low = [mean_acc[approach][l] - std_acc[approach][l] for l in LABELS]
     fill_up = [mean_acc[approach][l] + std_acc[approach][l] for l in LABELS]
     plt.fill_between(std_bacc[approach].keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
-plt.xlabel('Number of Expert Labels', fontsize=14)
-plt.ylabel('F0.5-Score', fontsize=14)
-plt.ylim(0.5, 0.95)
-plt.title(f'Artificial Expert Labels Results', fontsize=14)
+plt.xlabel('Number of Expert Predictions $\mathit{l}$', fontsize=15)
+plt.ylabel('F0.5-Score', fontsize=15)
+#plt.ylim(0.5, 0.95)
+#plt.title(f'Artificial Expert Labels Results', fontsize=18)
 plt.minorticks_on()
 plt.grid(visible=True, which='major', alpha=0.2, color='grey', linestyle='-')
-plt.grid(visible=True, which='minor', alpha=0.1, color='grey', linestyle='-')
-plt.legend(loc='lower right', fontsize=10)
+#plt.grid(visible=True, which='minor', alpha=0.1, color='grey', linestyle='-')
+#plt.legend(loc='lower right', fontsize=14)
+plt.tight_layout()
 plt.savefig(f"plots/pred_results_nih{strength}.png", transparent=True)
+plt.savefig(f'plots/pred_results_nih{strength}.pdf', bbox_inches='tight')
 plt.show()
 
-print(get_latex_table(mean_bacc, std_bacc, LABELS))
+print(get_latex_table(mean_acc, std_acc, LABELS))
 
 results_df = pd.DataFrame(data=total_results, columns=['approach'] + LABELS)
 results_df.to_csv(f'results/pred_results_nih{strength}.csv')

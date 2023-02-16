@@ -185,7 +185,7 @@ class NIH_Dataset(Dataset):
         self.image_ids = data
         self.labels = labels
         self.mode = mode
-        img_dir = os.getcwd()[:-len('Embedding-Semi-Supervised')] + 'nih_images/images_indlabels/'
+        img_dir = os.getcwd()[:-len('Embedding-Semi-Supervised')] + 'nih_images/'
         images = []
         for filename in self.image_ids:
             img = Image.open(img_dir + filename)

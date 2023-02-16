@@ -57,7 +57,7 @@ def main(argv):
             sys.exit()
         # get ture expert prediction function
         true_expert_fns = true_expert.predict
-        for seed in [1234]:
+        for seed in [12345]:
             # run human-AI collaboration for the true expert
             best_metrics = run_reject(args, true_expert_fns, EPOCHS, ALPHA,
                                       TRAIN_BATCH_SIZE, TEST_BATCH_SIZE, seed, NUM_CLASSES)

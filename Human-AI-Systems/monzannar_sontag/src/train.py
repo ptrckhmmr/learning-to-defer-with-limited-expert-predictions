@@ -12,7 +12,7 @@ from torch.utils.tensorboard.writer import SummaryWriter
 
 from src.data_loading import CIFAR100_Dataloader, NIH_Dataloader
 from src.utils import load_from_checkpoint, save_to_checkpoint, log_test_metrics, get_train_dir
-from src.metrics import accuracy, AverageMeter, metrics_print
+from src.metrics import accuracy, AverageMeter, metrics_print, fairness_print
 from src.models import WideResNet, Resnet, NIH_Network
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -326,6 +326,7 @@ def run_reject(args, expert_fn, epochs, alpha, train_batch_size=128, test_batch_
             best_model = copy.deepcopy(model)
             save_to_checkpoint(train_dir, epoch, model, optimizer, scheduler, best_metrics, seed)
     best_metrics = metrics_print(best_model, expert_fn, num_classes, test_loader, test=True)
+    #fairness_print(best_model, expert_fn, num_classes, test_loader, args, test=True, seed=seed)
     best_metrics['system loss'] = best_loss
     log_test_metrics(writer, epochs, best_metrics, num_classes)
     save_to_checkpoint(train_dir, epochs, best_model, optimizer, scheduler, best_metrics, seed)
