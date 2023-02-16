@@ -136,7 +136,7 @@ def fairness_print(net, expert_fn, n_classes, loader, args, test=False, seed=0):
 
     :return:
     """
-    img_dir = os.getcwd()[:-len('human-AI-systems/monzannar_sontag')] + 'nih_images/'
+    img_dir = os.getcwd()[:-len('human-AI-systems/mozannar_sontag')] + 'nih_images/'
     metadata = pd.read_csv(img_dir + 'nih_meta_data.csv')
     correct = []
     correct_sys = []

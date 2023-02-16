@@ -215,7 +215,7 @@ class NIH_Dataloader():
         self.train_batch_size = train_batch_size
         self.test_batch_size = test_batch_size
 
-        img_dir = os.getcwd()[:-len('human-AI-systems/monzannar_sontag')] + 'nih_images/'
+        img_dir = os.getcwd()[:-len('human-AI-systems/mozannar_sontag')] + 'nih_images/'
         individual_labels = pd.read_csv(img_dir+'nih_labels.csv')
         data = individual_labels[individual_labels['Reader ID'] == labeler_id]
         x_data = np.array(data['Image ID'])

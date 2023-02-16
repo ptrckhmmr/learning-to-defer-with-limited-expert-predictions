@@ -6,7 +6,7 @@ plt.rc('font', family='Times New Roman', size=13)
 
 DATASET = 'cifar100'
 EX_STRENGTH = [60, 90]
-FRAMEWORKS = {'monzannar_sontag': ['a) Mozannar and Sontag (2020)', 50],
+FRAMEWORKS = {'mozannar_sontag': ['a) Mozannar and Sontag (2020)', 50],
               'raghu': ['b) Raghu et al. (2019)', 200],
               'okati': ['c) Okati, De, and Rodriguez (2021)', 100]}
 APPROACHES = {'FixMatch': ['FixMatch', 'lightgreen'],
@@ -62,7 +62,7 @@ for s, strength in enumerate(EX_STRENGTH):
             fill_up = [acc[l] + std[l] for l in LABELS]
 
             baxes.fill_between(acc.keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
-        if framework == 'monzannar_sontag':
+        if framework == 'mozannar_sontag':
             plt.ylabel(r'Synthetic Expert $H_{'+str(strength)+'}$ \n % of System Test Accuracy\n with Complete Expert Predictions', fontsize=14)
         if strength == 90:
             plt.xlabel('Number of Expert Predictions $\mathit{l}$', fontsize=14)

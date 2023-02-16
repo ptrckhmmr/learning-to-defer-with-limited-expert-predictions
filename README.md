@@ -11,7 +11,7 @@ This repository is structured as follows:
 * `Embedding-Semi-Supervised`: Code for the proposed Emb-SSL implementations *Embedding-FixMatch* and *Embedding-CoMatch*
 * `Embedding-Supervised`: Code for the Emb-SL baselines *Embedding-SVM* and *Embedding-NN*
 * `Semi-Supervised`: Code for the SSL baselines <a href="https://arxiv.org/abs/2001.07685">*FixMatch*</a> and <a href="https://arxiv.org/abs/2011.11183">*CoMatch*</a> 
-* `Human-AI-Systems`: Implementations of the human-AI systems of <a href="https://proceedings.mlr.press/v119/mozannar20b.html">Monzannar & Sontag</a>,
+* `Human-AI-Systems`: Implementations of the human-AI systems of <a href="https://proceedings.mlr.press/v119/mozannar20b.html">Mozannar & Sontag</a>,
 <a href="https://arxiv.org/abs/2103.08902">Okati et al.</a>, and
 <a href="https://arxiv.org/abs/1903.12220">Raghu et al.</a>. 
 

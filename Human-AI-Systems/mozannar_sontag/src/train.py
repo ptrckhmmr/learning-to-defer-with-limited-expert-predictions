@@ -263,7 +263,7 @@ def run_reject(args, expert_fn, epochs, alpha, train_batch_size=128, test_batch_
     :return: Best system metrics
     """
     # get train directory
-    train_dir = get_train_dir(os.getcwd(), args, 'monzannar_sontag')
+    train_dir = get_train_dir(os.getcwd(), args, 'mozannar_sontag')
     # initialize tensorbaord writer
     writer = SummaryWriter(train_dir + 'logs/')
     # initialize model

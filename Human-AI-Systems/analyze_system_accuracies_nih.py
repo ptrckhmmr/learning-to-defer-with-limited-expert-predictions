@@ -5,7 +5,7 @@ import pandas as pd
 plt.rc('font', family='Times New Roman', size=13)
 DATASET = 'nih'
 EX_STRENGTH = 4295342357#4295194124 #4295342357
-FRAMEWORKS = {'monzannar_sontag': ['a) Mozannar and Sontag (2020)', 50],
+FRAMEWORKS = {'mozannar_sontag': ['a) Mozannar and Sontag (2020)', 50],
               'raghu': ['b) Raghu et al. (2019)', 100],
               'okati': ['c) Okati, De, and Rodriguez (2021)', 100]}
 APPROACHES = {'FixMatch': ['FixMatch', 'lightgreen'],
@@ -18,7 +18,7 @@ LABELS = ['4', '8', '12', '20', '40', '100', '500']
 SEEDS = [0, 1, 2, 3, 123]
 classifier_performance = {4295194124: 81.13,  4295342357: 83.471}
 best_ex_performance = {4295342357: 83.89, 4295194124: 85.79}
-axes = {'monzannar_sontag': {4295342357: ((92, 100.5)), 4295194124: ((88, 101))},
+axes = {'mozannar_sontag': {4295342357: ((92, 100.5)), 4295194124: ((88, 101))},
         'raghu': {4295342357: ((92, 100.5)), 4295194124: ((88, 101))},
         'okati': {4295342357: ((92, 100.5)), 4295194124: ((88, 101))}}
 
@@ -67,7 +67,7 @@ for f, framework in enumerate(FRAMEWORKS.keys()):
         fill_up = [acc[l] + std[l] for l in LABELS]
 
         plt.fill_between(acc.keys(), fill_low, fill_up, alpha=0.1, color=APPROACHES[approach][1])
-    if framework == 'monzannar_sontag':
+    if framework == 'mozannar_sontag':
         plt.ylabel(f'NIH Expert {EX_STRENGTH}\n % of System Test Accuracy\n with Complete Expert Predictions', fontsize=14)
     plt.xlabel('Number of Expert Predictions $\mathit{l}$', fontsize=14)
     plt.title(f'{FRAMEWORKS[framework][0]}', fontsize=18)

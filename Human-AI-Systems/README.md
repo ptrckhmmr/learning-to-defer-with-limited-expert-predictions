@@ -1,6 +1,6 @@
 ## Human-AI Systems
 This repository contains the implementations of the following human-AI systems:
-* **Monzannar & Sontag** (<a href="https://proceedings.mlr.press/v119/mozannar20b.html">paper</a>, <a href="https://github.com/clinicalml/learn-to-defer">code</a>)
+* **Mozannar & Sontag** (<a href="https://proceedings.mlr.press/v119/mozannar20b.html">paper</a>, <a href="https://github.com/clinicalml/learn-to-defer">code</a>)
 * **Raghu et al.** (<a href="https://arxiv.org/abs/1903.12220">paper</a>, <a href="https://github.com/clinicalml/learn-to-defer">code</a>)
 * **Okati et al.** (<a href="https://arxiv.org/abs/2103.08902">paper</a>, <a href="https://github.com/Networks-Learning/differentiable-learning-under-triage">code</a>)
 

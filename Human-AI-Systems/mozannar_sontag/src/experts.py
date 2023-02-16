@@ -19,7 +19,7 @@ class Cifar100Expert:
     """
 
     def __init__(self, pred_dir, pred: str = None, true_pred: str = None):
-        self.pred_dir = pred_dir[:-len('monzannar_sontag')]
+        self.pred_dir = pred_dir[:-len('mozannar_sontag')]
         if pred is not None:
             with open(self.pred_dir + '/artificial_expert_labels/' + pred + '.json') as json_file:
                 self.artificial_expert_labels = json.load(json_file)
@@ -74,7 +74,7 @@ class NihExpert:
     """
 
     def __init__(self, pred_dir, pred: str = None, true_pred: str = None):
-        self.pred_dir = pred_dir[:-len('monzannar_sontag')] + '/artificial_expert_labels/'
+        self.pred_dir = pred_dir[:-len('mozannar_sontag')] + '/artificial_expert_labels/'
         if pred is not None:
             with open(self.pred_dir + pred + '.json') as json_file:
                 self.image_id_to_artificialex_label = json.load(json_file)
