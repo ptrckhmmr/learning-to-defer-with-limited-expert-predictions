@@ -15,4 +15,4 @@ analyze_system_accuracies_nih.py
 analyze_system_coverages_cifar.py
 analyze_system_coverages_cifar_2.py
 copy_checkpoints.sh
-.idea/
+.idea
