@@ -1,5 +1,6 @@
 plots/
 results/
+artificial_expert_labels/
 monzannar_test/
 mozannar_sontag/experiments
 mozannar_sontag/data
@@ -14,3 +15,4 @@ analyze_system_accuracies_nih.py
 analyze_system_coverages_cifar.py
 analyze_system_coverages_cifar_2.py
 copy_checkpoints.sh
+.idea/
