@@ -57,7 +57,6 @@ class EmbeddingModel:
                                                                                             self.test_data,
                                                                                             self.val_data,
                                                                                             batch_size=args['batch'])
-        print(f'check: {self.train_data.images[10]}')
         self.save_model_args()
 
     def get_model(self):
