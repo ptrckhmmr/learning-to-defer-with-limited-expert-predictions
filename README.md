@@ -32,7 +32,8 @@ tensorboard_logger
 
 ## Execution
 Follow these steps to reproduce our experiments: 
-1. (NIH experiments only) Download and extract the <a href="https://cloud.google.com/healthcare-api/docs/resources/public-datasets/nih-chest">NIH dataset</a> to `nih_images/`
+1.a (NIH experiments only) Download and extract the <a href="https://cloud.google.com/healthcare-api/docs/resources/public-datasets/nih-chest">NIH dataset</a> to `nih_images/`
+1.b (CIFAR experiments only) Generate the synthetic expert labels
 2. Execute the training of one of the proposed Embedding-Semi-Supervised approaches (or any baseline)
 3. Generate the artificial expert labels
 4. Execute the training of one of the learning to defer algorithms
